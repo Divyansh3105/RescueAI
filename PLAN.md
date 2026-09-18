@@ -76,6 +76,8 @@ Already decided: on 2026-09-15 (D-026 to D-034) band cutoffs and the Wait cap (b
 
 **Exit criteria:**
 - Decisions 1–4 are answered and recorded in `PRD.md` / `DECISIONS.md`.
+- **The December university exam dates are confirmed.** If they overlap Phase 4, move the feature freeze to Jan 17 and pull Phase 4 work forward into Phase 3.
+- **Severity table fallback:** if the real table isn't decided by Sep 25, a provisional table goes into `PRD.md` marked `[Provisional]`, so Phase 2 and Paper Part 2 aren't blocked.
 - Lint, type-check and tests pass locally in `web/` and `api/`.
 - The empty app loads over HTTPS on the VM, and a phone can grant it location permission.
 - The "Not established" command sections in `AGENTS.md` and `TESTING.md` list commands that have actually been run.
@@ -89,6 +91,8 @@ Already decided: on 2026-09-15 (D-026 to D-034) band cutoffs and the Wait cap (b
 
 **Goal:** The data layer and all ranking math exist and are tested, the Methodology section is submitted, and a thin demo slice works for the Phase-I Exam.
 
+**This is the highest-risk phase in the plan.** Two fixed external dates (Oct 20 and Oct 26) sit inside it, and it carries the schema, login, the whole scoring core, a demo and a paper section in about 13 working days. Cut scope here before cutting it anywhere else.
+
 **Build: data, login and access (A):**
 - Drizzle schema and migrations for USER, VOLUNTEER_PROFILE, VOLUNTEER_SKILL, TEAM, TEAM_CAPABILITY, RESCUE_REQUEST, SELECTION, ASSIGNMENT, SCORING_WEIGHTS, LOCATION_REQUEST, AUDIT_ENTRY and SESSION.
 - Database constraints: status values, and at most one active assignment per responder.
@@ -96,14 +100,18 @@ Already decided: on 2026-09-15 (D-026 to D-034) band cutoffs and the Wait cap (b
 - Server-side sessions, httpOnly cookie, bcrypt; login, logout and current-session routes.
 - Role middleware and ownership checks. A seeded Admin creates and deactivates on-site and office commanders.
 - The decided API error shape `{ error: { code, message, fields? } }` (D-035), used by every route.
-- Integration test harness against Docker PostgreSQL, migrating from an empty database.
+- Integration test harness against Docker PostgreSQL, migrating from an empty database, with the privileged truncate role from D-038.
+- A seed script for local development: one Admin, one on-site and one office commander, a few volunteers and teams. This is separate from the Admin scenario loader (F14).
+- All timestamps stored in UTC and displayed in IST (D-041).
 
 **Build: scoring core (B, in parallel):**
 - Severity rule, P(r), S(v,r), team score, eligibility filters, per-factor contributions, the one-line reason, and the priority band function. All are pure functions in `api/src/scoring/`.
 
-**Build: exam demo slice (C):**
+**Build: exam demo slice (C) — bare minimum, no polish:**
 - Login screen and empty role shells per `DESIGN.md`.
-- A basic citizen request form → automatic severity → commander queue sorted by P(r), deployed on the VM.
+- A citizen request form → automatic severity → commander queue sorted by P(r), deployed on the VM.
+- Out of scope for the demo: the map, recommendations, Hindi, the location banner, and any styling beyond the `DESIGN.md` defaults. Phase 3 finishes these screens, so build the slice for Phase 3 to extend, not to replace.
+- Demo mechanics: prepare one volunteer, one on-site commander, one office commander and one Admin account. Four roles open at once means separate browser profiles or incognito windows, plus a phone on the same network. Rehearse the walkthrough once before Oct 24.
 
 **Write:** Paper Part 2 (Methodology). It covers the architecture, the severity rule, P(r), S(v,r), the explanation method, and the evaluation method: manual baseline for SM1, how ground truth is built for SM2, and SUS for SM3.
 
@@ -138,7 +146,7 @@ Already decided: on 2026-09-15 (D-026 to D-034) band cutoffs and the Wait cap (b
 - **AC1, AC2, AC4, AC6** verified (integration tests; AC2 also checked by hand).
 - **AC23** (location request banner) and **AC24** (English and Hindi) verified.
 - **AC21:** volunteer screens and location sharing work on a 375 px Android browser (checked by hand).
-- New screens checked by hand against the `DESIGN.md` accessibility rules.
+- New screens checked against the `DESIGN.md` accessibility rules, including an axe DevTools or Lighthouse pass in both languages.
 
 ---
 
@@ -146,7 +154,7 @@ Already decided: on 2026-09-15 (D-026 to D-034) band cutoffs and the Wait cap (b
 
 **Dates:** Nov 30 – Dec 27
 
-**Goal:** The whole core loop works end to end, and nothing can be dispatched without approval (PRD UF3, UF4, UF5). This is the riskiest phase.
+**Goal:** The whole core loop works end to end, and nothing can be dispatched without approval (PRD UF3, UF4, UF5). This is the largest build phase; Phase 2 carries more risk, because of its fixed external dates.
 
 **Build:**
 - **F7:** recommendation endpoint. Required skills default from the hazard and can be edited; it returns the top 10 volunteers and top 10 teams and records `first_recommended_at`.
@@ -157,7 +165,12 @@ Already decided: on 2026-09-15 (D-026 to D-034) band cutoffs and the Wait cap (b
 - Personal data: citizen phone numbers and volunteer locations appear only in commander responses.
 - **F12:** refreshing on offers and request detail. **F13:** read-only audit log view.
 
-**Start in parallel (B):** scenario datasets and ground-truth assignments for Phase 6. They take longer than the code.
+**Start in parallel (B):** scenario datasets and ground-truth assignments for Phase 6. They take longer than the code, and they have to exercise the whole formula:
+- **Backdated submission times**, or every request has the same Wait and the queue is ordered by severity alone.
+- **Varied location ages**, or every volunteer has the same Freshness (all 1.0, or all 0).
+- **Varied service histories**, or every volunteer sits at the 0.5 Reliability default.
+- **At least 50 eligible volunteers per scenario**, or Precision@5 and NDCG@5 mean nothing.
+- **Graded relevance in the ground truth** (for example ideal / acceptable / wrong), because NDCG needs grades, not a yes-or-no list.
 
 **Exit criteria (integration tests unless noted):**
 - **AC7, AC10, AC11, AC12, AC13, AC14, AC15, AC16, AC22** verified.
@@ -176,9 +189,12 @@ Already decided: on 2026-09-15 (D-026 to D-034) band cutoffs and the Wait cap (b
 - **F11:** Leaflet/OSM map with requests colored by band, plus Available volunteers and teams.
 - **F12:** confirm that every screen named in the PRD updates without a reload.
 - **F14:** evaluation timestamps checked end to end, CSV export, and the Admin scenario loader.
-- PWA manifest and install on Android.
-- Production deploy with a database backup (for example a nightly `pg_dump`).
-- A full manual walkthrough of UF1–UF6 on the deployed site.
+- PWA manifest and install on Android. No offline caching: offline is a non-goal, and a stale cache would only break a live demo.
+- Production deploy with a database backup (for example a nightly `pg_dump`), plus **one restore into a scratch database to prove the backup works**.
+- Keep the previous Docker image tagged, so a bad deploy can be rolled back in a minute.
+- An accessibility pass with axe DevTools or Lighthouse on the citizen, volunteer and commander screens, in both languages.
+- Time the queue and recommendation endpoints against the largest scenario on the real VM. If a poll takes more than about a second, pre-filter candidates in SQL before scoring.
+- A full manual walkthrough of UF1–UF6 on the deployed site, with all four roles open at once.
 
 **Exit criteria:**
 - **AC19** (checked by hand) and **AC20** (integration test) verified.
@@ -196,9 +212,10 @@ Already decided: on 2026-09-15 (D-026 to D-034) band cutoffs and the Wait cap (b
 **Work:**
 - **SM1:** run the same scenarios manually (with the same on-site and office approval steps) and with RescueAI, and compare the median time from submission to office approval.
 - **Reconsider the provisional values** (band cutoffs, the 60-minute Wait cap) against the scenario data, and record the outcome in `DECISIONS.md`.
-- **SM2:** Precision@5 and NDCG@5 of volunteer rankings against the ground truth.
+- **SM2:** Precision@5 and NDCG@5 of volunteer rankings against the ground truth, using the graded relevance defined with the scenario data. The metrics stay at 5 even though the shortlist shows 10.
 - **SM3:** SUS questionnaire with evaluators acting as commanders.
 - **SM4 / SM5:** from the audit export, check that 100% of assignments have an approval and 100% of recommendations have an explanation.
+- **Write the limitations down** for the paper: straight-line distance in mountain terrain, synthetic volunteers, no routing, dispatch stalls when no office commander is on duty, and no automatic detection of duplicate reports.
 - Fix bugs found during the evaluation runs.
 - Shortlist Scopus-indexed venues whose submission deadlines fit February.
 
@@ -222,7 +239,7 @@ Already decided: on 2026-09-15 (D-026 to D-034) band cutoffs and the Wait cap (b
 | May | Phase-II Examination: rehearsed demo on the deployed site. |
 
 **Engineering during this phase:**
-- Bug fixes, an accessibility pass against `DESIGN.md`, a demo script and rehearsals.
+- Bug fixes, an accessibility pass against `DESIGN.md`, and a written demo script rehearsed with all four roles open at once (separate browser profiles plus a phone).
 - Keep the VM, domain and backups running until the May exam.
 - Update `ARCHITECTURE.md` (change "planned" to what actually exists), `MEMORY.md` and `DECISIONS.md`.
 - **Optional:** February–April leaves room for one or two PRD Future Features (for example road routing). Each needs a PRD update and the team's agreement first, and must not put the paper or reports at risk.
@@ -245,4 +262,9 @@ Already decided: on 2026-09-15 (D-026 to D-034) band cutoffs and the Wait cap (b
 | Scopus review takes too long for April acceptance | Milestone 13 missed | Pick a conference with a quick decision cycle; shortlist venues in January |
 | VM or domain lapses before May | Demo fails at Phase-II Exam | Pay for hosting through May 2027; keep a local Docker Compose fallback |
 | Paper Part 1 (Sep 10) status unknown | Part 2 builds on a missing Part 1 | Confirm it was submitted |
-| Two-level approval and Hindi add work to Phases 3–4 | The Jan 10 freeze slips | Build Approvals by reusing the recommendation panel; translate only citizen and volunteer screens |
+| Two-level approval and Hindi add work to Phases 3–4 | The Jan 10 freeze slips | Build the approval view by reusing the recommendation panel; translate only citizen and volunteer screens |
+| Phase 2 is overloaded: schema, login, scoring, a demo and a paper section in 13 working days | Paper Part 2 or the Phase-I demo slips | Keep the demo slice bare; run the data layer (A) and scoring core (B) in parallel; drop demo polish first |
+| Scenario data has constant Wait, Freshness or Reliability | Three formula terms do nothing in your own evaluation, and the paper can't defend them | Backdate times and vary location ages and histories (see Phase 4) |
+| The two-level approval UI has no automated coverage | A regression in the approval path breaks both the demo and SM4 | Re-run the manual UF3 walkthrough after any change to the decision service or the approval view |
+| A bad deploy on demo day | No demo | Keep the previous image tagged for rollback, with local Docker Compose as a fallback |
+| Phase 5 runs across the New Year holidays | The freeze slips | Treat Phase 5 as one working week of capacity, not two |

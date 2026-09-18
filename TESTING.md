@@ -1,6 +1,6 @@
 # Testing Strategy
 
-> **State (2026-09-11):** No tests, test configuration, `package.json` or CI exist yet, because the repository contains only documentation. This file records the **decided** testing strategy (DECISIONS.md D-021, D-024). Anything marked **Not established** must be decided and written here before it is relied on. Update this file whenever the testing strategy or tooling changes.
+> **State (2026-09-18):** Vitest, ESLint, Prettier and the CI workflow exist in both `web/` and `api/`, each with one trivial passing test. **The integration-test harness does not exist yet** - no Drizzle schema, no migrations, no Docker PostgreSQL test database, no supertest suite. Those land in Phase 2. Anything still marked **Not established** must be decided and written here before it is relied on. Update this file whenever the testing strategy or tooling changes.
 
 This is the canonical testing document. `RULES.md` and `AGENTS.md` point here.
 
@@ -31,7 +31,16 @@ This is the canonical testing document. `RULES.md` and `AGENTS.md` point here.
 | CI | GitHub Actions: lint, type-check and tests on every PR | Decided (D-039) |
 | E2E browser testing | None in MVP | Decided (D-024) |
 
-**Commands:** Not established. There is no `package.json` yet. Add the real commands here and in `AGENTS.md` once they exist and have been run. Don't guess script names.
+**Commands** (run from `web/` or `api/`; both were run on 2026-09-18 and pass):
+
+| Command | What it runs |
+|---|---|
+| `npm test` | Vitest once, over `src/**/*.test.ts` |
+| `npm run lint` | ESLint |
+| `npm run typecheck` | TypeScript, no emit |
+| `npm run format:check` | Prettier |
+
+There is no integration-test command yet, because there is no schema to migrate. Add it here when the Phase 2 harness lands.
 
 ## Unit Testing
 
@@ -63,7 +72,8 @@ UI acceptance criteria are verified **manually** by running the app, and the res
 - **AC19:** the map shows requests, volunteers and teams.
 - **AC21:** volunteer screens work at 375px, including location sharing.
 - **AC23:** the location request banner appears without a reload.
-- **AC24:** every citizen and volunteer screen reads correctly in Hindi on a real Android phone.
+- **AC24:** every citizen and volunteer screen reads correctly in Hindi on a real Android phone, with no clipped or overflowing labels.
+- An axe DevTools or Lighthouse accessibility pass on each new screen, in English and Hindi.
 - The accessibility rules in `DESIGN.md` → Accessibility.
 
 ## API Testing
@@ -128,11 +138,16 @@ Before a change is complete, run all of these and report the real output:
    - A skipped or focused test (`.skip`, `.only`) doesn't count as passing.
 4. **Manual checks:** if UI changed, the manual checks listed under End-to-End Testing.
 
-The commands for 1–3 are **Not established** yet (see Test Stack).
+The commands for 1–3 are in the Test Stack table above. Run each in both `web/` and `api/`. Integration tests are not part of check 3 yet; they join it in Phase 2.
 
 ## CI Testing
 
-**GitHub Actions** (D-039). Every pull request runs lint, type-check and the full Vitest suite, including the integration tests against PostgreSQL in Docker. The workflow does not exist yet: until it does, the checks run locally and the PR reviewer (RULES.md → Git Rules) confirms they passed. Record the workflow file and its commands here once they exist and have run.
+**GitHub Actions** (D-039). The workflow is `.github/workflows/ci.yml`, added 2026-09-18. It runs on every pull request and on pushes to `main`, as two jobs:
+
+- **api:** `npm ci`, `npm run lint`, `npm run typecheck`, `npm test`, with a `postgres:17-alpine` service container on port 5432 and `DATABASE_URL` set. Nothing uses the database yet; the service is there for the Phase 2 integration tests.
+- **web:** `npm ci`, `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`.
+
+The workflow has not run on GitHub yet, because there is no remote. Until there is, the checks run locally and the PR reviewer (RULES.md → Git Rules) confirms they passed.
 
 ## Definition of Done
 

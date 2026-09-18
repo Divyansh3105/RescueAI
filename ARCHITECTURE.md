@@ -1,6 +1,6 @@
 # Architecture
 
-> **State (2026-09-11): planned architecture only. No code exists yet.** The repository contains only documentation. Every component below is **planned**.
+> **State (2026-09-18): the shape exists, the behavior does not.** The three deployable pieces below are real and run: the SPA, the Express API and PostgreSQL, behind Caddy under Docker Compose, verified serving `/api/health` over HTTPS on 2026-09-18. Everything that makes RescueAI *work* is still **planned**: no database tables, no routes beyond health, no scoring, no auth. Sections about the data model, API areas, data flow and security describe what will be built in Phases 2-5 (`PLAN.md`).
 >
 > Each decision is labeled:
 > - **Decided:** explicitly chosen by the product owner.
@@ -81,20 +81,24 @@ Future components (not part of the MVP; see PRD "Future Features") would sit beh
 
 ## Repository Structure
 
-**Existing:**
+**Existing** (the layout below was created on 2026-09-18; the `routes/`, `services/` and `scoring/` directories are empty):
 ```
 PRD.md  DESIGN.md  AGENTS.md  CLAUDE.md  ARCHITECTURE.md  RULES.md
-```
-
-**Planned (Decided layout; not yet created):**
-```
+TESTING.md  PLAN.md  MEMORY.md  DECISIONS.md      (repository root)
 web/                 React SPA (all roles, route-based role shells per DESIGN.md)
+  src/index.css      Design tokens from DESIGN.md
+  src/components/ui/ shadcn/ui components (shadcn CLI)
+  src/lib/           small pure helpers
 api/                 Express API (TypeScript)
-  src/routes/        HTTP handlers: auth middleware, validation, response shaping
-  src/services/      Business rules: requests, volunteers, teams, recommendations, decisions, assignments, audit, admin
-  src/scoring/       Pure functions for Eq. 4.1 and 4.2 and the severity rule (no I/O)
-  src/db/            Queries and migrations
+  src/app.ts         the Express app: /api/health, 404 and error handler
+  src/routes/        HTTP handlers: auth middleware, validation, response shaping (empty)
+  src/services/      Business rules: requests, volunteers, teams, recommendations, decisions, assignments, audit, admin (empty)
+  src/scoring/       Pure functions for Eq. 4.1 and 4.2 and the severity rule, no I/O (empty)
+  src/db/            Drizzle client and schema; migrations output to api/drizzle/
 docker-compose.yml   proxy + api + db
+Dockerfile.proxy     Builds the SPA, serves it from Caddy with /api reverse-proxied
+Caddyfile            TLS and routing; SITE_ADDRESS selects the domain
+.github/workflows/   CI: lint, type-check, tests on every pull request
 ```
 
 There is no shared package between `web/` and `api/` at the start. Add one only when duplicated types actually cause bugs.
@@ -129,7 +133,6 @@ erDiagram
   RESCUE_REQUEST ||--o{ SELECTION : "on-site picks"
   SELECTION ||--o{ ASSIGNMENT : "created on office approval"
   RESCUE_REQUEST ||--o{ ASSIGNMENT : "approved responders"
-  USER ||--o{ LOCATION_REQUEST : "commander asks"
   VOLUNTEER_PROFILE ||--o{ ASSIGNMENT : "offered to"
   TEAM ||--o{ ASSIGNMENT : "deployed as"
   USER ||--o{ AUDIT_ENTRY : "actor"
@@ -141,12 +144,13 @@ erDiagram
 - **VOLUNTEER_SKILL:** skill and status (Unverified / Verified / Rejected), plus who verified it.
 - **RESCUE_REQUEST:** citizen fields (PRD F1), auto and overridden severity, status, and the evaluation timestamps (PRD F14).
 - **ASSIGNMENT:** one responder (volunteer or team) on one request, with offer status and timestamps.
-- **SELECTION:** the responders an on-site commander chose for one request, with the required skills, the ranking snapshot and a status (awaiting approval / approved / sent back). It records who selected, who approved or sent back, and when. Assignments are created only when a selection is approved (PRD F9).
-- **LOCATION_REQUEST:** a commander's request that all volunteers share their location, with actor and time. A volunteer sees the banner while their location timestamp is older than the latest request (PRD F2).
-- **SCORING_WEIGHTS:** w1–w4, α, β, γ. Editable by the Admin (PRD AC10). Each group must sum to 1, checked in the API and by a CHECK constraint.
+- **SELECTION:** the responders an on-site commander chose for one request, the required skills used, and a status (awaiting approval / approved / sent back). It records who selected, who approved or sent back, and when. Assignments are created only when a selection is approved (PRD F9). It does **not** copy the explanation snapshot; that lives in the audit entry alone (D-042).
+- **Location request (PRD F2):** the latest "share your location" request is an actor and a timestamp on the settings row, not a table (D-042). A volunteer sees the banner while their own location timestamp is older than that time, and the audit log keeps the history.
+- **SCORING_WEIGHTS (the settings row):** w1–w4, α, β, γ, plus the latest location-request actor and time. Editable by the Admin (PRD AC10). Each weight group must sum to 1, checked with zod in the API — no database CHECK constraint, because floating-point sums make it fragile and only the Admin writes this row (D-042).
 - **AUDIT_ENTRY:** actor, action, target, timestamp, and a JSON snapshot of the recommendation and explanation that was shown. **Append-only.**
 
 **Rules:**
+- **All timestamps are stored in UTC** (`timestamptz`) and rendered in IST in the UI and in CSV exports (D-041). The Wait term, the evaluation timestamps and SM1 all depend on this.
 - **Location is stored as plain latitude/longitude columns.** MVP proximity is straight-line (haversine) distance computed in `scoring/`. PostGIS is added only when a Future spatial feature needs it.
 - **The audit log is append-only at the database level (Decided).** The application's DB role gets `INSERT` and `SELECT` only on the audit table. Any action that must be audited writes its audit row **in the same transaction** as the action.
 - **Constraints belong in the database.** Enum-like statuses and "one active assignment per responder" (PRD F10, confirmed 2026-09-15) are enforced with database constraints, not only in application code.
@@ -300,7 +304,7 @@ flowchart LR
 
 - Only the proxy is exposed publicly (ports 80 and 443). The API and database are reachable only on the Compose network.
 - The SPA is built into static files that the proxy serves. The API container runs the compiled TypeScript.
-- CI: GitHub Actions runs lint, type-check and the test suite on every pull request (D-039). Deployment stays manual.
+- CI: GitHub Actions runs lint, type-check and the test suite on every pull request (D-039), defined in `.github/workflows/ci.yml`. It has not run on GitHub yet: there is no remote. Deployment stays manual.
 - Not established: the backup strategy for the database volume, and the domain name.
 
 ## Architecture Decisions

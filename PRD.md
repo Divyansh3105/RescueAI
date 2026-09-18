@@ -57,6 +57,7 @@ During disaster response, commanders decide which rescue request to serve first 
 - A native mobile app. Volunteers use the responsive web app.
 - Offline or low-connectivity operation.
 - Hazard types other than flood and landslide in the MVP.
+- Automatic detection of duplicate reports of one incident. Commanders cancel duplicates by hand.
 
 ## Core Features
 
@@ -168,7 +169,7 @@ Rules:
 **F14 — Evaluation support**
 - The system timestamps each request at submission, first recommendation shown, on-site selection, office approval, acceptance and completion.
 - The Admin can export these timestamps and the audit log as CSV. Exports contain no citizen phone numbers or volunteer locations.
-- The Admin can load a scenario dataset (requests, synthetic volunteers, teams) for demos and evaluation.
+- The Admin can load a scenario dataset (requests, synthetic volunteers, teams) for demos and evaluation. A scenario sets its own submission times, volunteer location timestamps and service histories, so the Wait, Freshness and Reliability terms vary within it instead of being constant.
 
 ## User Flows
 
@@ -229,10 +230,11 @@ Everything below comes from the synopsis and is **deferred beyond the MVP**:
 ## Technical Constraints
 
 - **Timeline:** built by a team of 3 to the department timeline (ref. GEHU/CSE/Major-Project/2026-2027/01). Phase-I Examination Oct 26 – Nov 3, 2026; deployed prototype plus evaluation by January 2027; Phase-II Examination May 2027. Full milestone list in `PLAN.md`.
-- **Platform:** a web application. The volunteer UI must work in a mobile browser on Android 10+ with GPS, and be installable as a PWA.
+- **Platform:** a web application. The volunteer UI must work in a mobile browser on Android 10+ with GPS, and be installable as a PWA. The PWA is install-only, with no offline caching, because offline operation is a non-goal.
 - **Stack:** synopsis Table 5.2 is **indicative, not mandatory**. Simpler alternatives are allowed if the features are delivered.
 - **Hosting:** the demo instance must run on about 2 vCPU, 4 GB RAM and 40 GB storage (synopsis Table 5.1).
 - **Map data:** OpenStreetMap.
+- **Time:** timestamps are stored in UTC and shown in IST everywhere, including CSV exports.
 - **Data:** no public volunteer dataset exists, so volunteers are **synthetic**. Evaluation uses historical Uttarakhand flood/landslide records and simulated tabletop scenarios.
 - **Human approval is mandatory at two levels:** no code path may offer an assignment or deploy a team without a logged on-site commander selection and a logged office commander approval.
 - **Security:**
@@ -308,6 +310,7 @@ The owner confirmed these targets on 2026-09-15. They are not yet grounded in do
 4. No shared commander action is restricted to one commander type (Target Users).
 5. The office commander approves a selection exactly as sent and cannot edit it (F9).
 6. The 2-hour window in the Freshness term (F7).
+7. **Password reset is missing.** Nothing lets a volunteer who forgot their password back in, and only the Admin creates commander accounts. Either a commander can reset a volunteer's password, or this is accepted as a known limitation.
 
 **Provisional: decided 2026-09-15, reconsider against scenario data in Phase 6 ([Provisional]):**
 - Priority band cutoffs: Critical ≥ 0.70, High ≥ 0.50 (F6).

@@ -920,3 +920,74 @@ No built-in pluralization or interpolation helpers; the team writes the few it n
 ARCHITECTURE.md AD15 and the Tech Stack row move from Proposed to Decided. RULES.md UI Rules updated.
 ### Alternatives Rejected
 react-i18next, which is a new dependency for a two-language prototype.
+
+## D-041 Timestamps stored in UTC, displayed in IST
+
+### Date
+2026-09-18
+### Status
+Accepted
+### Context
+No document said where timestamps live. The Wait term, the evaluation timestamps (PRD F14), SM1 and the CSV export all depend on it, and a mismatch would shift results silently.
+### Options Considered
+Store UTC and convert for display, or store IST throughout.
+### Decision
+All timestamps are `timestamptz` in UTC. The UI and CSV exports render IST.
+### Reasoning
+UTC storage is the standard way to avoid ambiguity, and all evaluation is in one time zone anyway, so conversion happens only at the edges.
+### Trade-offs
+Every display path needs the conversion, and CSV readers must know the column is IST.
+### Consequences
+ARCHITECTURE.md Database Architecture, PRD Technical Constraints and PLAN.md Phase 2 updated.
+### Alternatives Rejected
+Storing IST, which breaks as soon as anything compares or exports timestamps.
+
+## D-042 Data-model and UI simplifications from the plan review
+
+### Date
+2026-09-18
+### Status
+Accepted
+### Context
+A review before Phase 2 writes migrations found three pieces of planned structure that duplicate something already in the design.
+### Options Considered
+Build as planned, or trim each item.
+### Decision
+- **SELECTION** stores the chosen responders, the required skills and its status only. The explanation snapshot stays in the audit entry, which already keeps it.
+- **The location request** is an actor and timestamp on the settings row, not its own table. History lives in the audit log.
+- **No database CHECK constraint** that weights sum to 1; zod at the API boundary is enough, because only the Admin writes that row.
+- **The office commander's view is an "Awaiting approval" filter on the Queue**, not a separate Approvals screen. It reuses the split view with a read-only recommendation panel.
+### Reasoning
+Each removed piece either duplicated stored data or duplicated a screen. Less to build before the January freeze, and one less place for the two copies to disagree.
+### Trade-offs
+Reading "what the on-site commander saw" means reading the audit entry rather than the selection row.
+### Consequences
+ARCHITECTURE.md Database Architecture and DESIGN.md Layout, Component Patterns and Empty States updated. PLAN.md Phase 2 migration list keeps SELECTION but drops LOCATION_REQUEST.
+### Alternatives Rejected
+Building all four as first planned.
+
+## D-043 Phase 1 scaffold choices
+
+### Date
+2026-09-18
+### Status
+Accepted
+### Context
+Scaffolding `web/` and `api/` forced four small choices that the existing docs did not cover, and one conflict with what the current Vite template ships.
+### Options Considered
+Take each tool's defaults, or bend them to `RULES.md` and `DESIGN.md`.
+### Decision
+- **ESLint, not oxlint.** `npm create vite` now scaffolds oxlint. It was removed and replaced with ESLint + `typescript-eslint`, because `RULES.md` -> Dependency Rules adopts ESLint (D-021) and forbids an alternative to an adopted tool.
+- **`strict: true` added by hand.** The Vite React-TS template no longer sets it. `RULES.md` -> Type Safety requires it, so `strict` and `noUncheckedIndexedAccess` were added to both packages.
+- **shadcn/ui initialized by hand, not through its CLI presets.** The current `shadcn init` only offers named presets (Nova, Vega, ...), and every one ships a web font. `DESIGN.md` -> Do Not forbids web fonts and dark mode. So `components.json`, `src/lib/utils.ts` and the CSS variables in `src/index.css` were written directly from the `DESIGN.md` colour table, using the exact hex values recorded there. `npx shadcn add <component>` works against that config and was verified with `button`.
+- **Two independent npm packages, no workspace root.** `web/` and `api/` each have their own `package.json` and `package-lock.json`. There is no root manifest.
+- **Caddy serves the SPA from its own image.** `Dockerfile.proxy` builds `web/` in a Node stage and copies `dist/` into the Caddy image, so there is no third "web" container at runtime.
+### Reasoning
+The first three are the existing rules applied to tools whose defaults have drifted. The last two keep the deployment to the three containers `ARCHITECTURE.md` already describes, and match "there is no shared package between `web/` and `api/` at the start".
+### Trade-offs
+Writing the shadcn tokens by hand means the design tokens are ours to maintain: a future `shadcn` upgrade will not update them. That is the intended direction anyway, since `DESIGN.md` is the source of truth for colour.
+A workspace root would let one `npm ci` install both packages. Two `npm ci` calls are cheap, and CI runs the packages as separate jobs regardless.
+### Consequences
+`AGENTS.md` (project state, repository structure, all three command sections), `TESTING.md` (state, commands, CI) and `ARCHITECTURE.md` (state, repository structure, CI note) updated in the same change.
+### Alternatives Rejected
+Keeping oxlint; accepting a shadcn preset and its web font; an npm workspace root; a separate static-file container.

@@ -1,10 +1,11 @@
 # Project Memory
 
-_Last updated: 2026-09-18 (session 3). Update this after every meaningful session and delete anything that's out of date._
+_Last updated: 2026-09-18 (session 4). Update this after every meaningful session and delete anything that's out of date._
 
 ## Current Status
 
-- **Pre-implementation. Documentation only.** There is no code and no `package.json`, and the folder **is not a git repository**.
+- **Scaffolded, no features.** It is a git repository now (`main`, two commits, **no remote**). `web/` and `api/` exist, build, lint, type-check and each pass one trivial test. `docker compose up` serves the SPA and `/api/health` over HTTPS - verified locally on 2026-09-18, returning `{"status":"ok","db":"up"}`.
+- **No PRD feature is implemented.** No database table, no Drizzle schema, no migration, no auth, no scoring, no route beyond `/api/health`. All of that is Phase 2.
 - The documentation set: `PRD.md`, `AGENTS.md` (the entry point), `DESIGN.md`, `ARCHITECTURE.md`, `RULES.md`, `DECISIONS.md`, `TESTING.md`, `PLAN.md`, `MEMORY.md`, and `CLAUDE.md` (which just imports AGENTS.md).
 - The stack, tooling and coding rules are decided. The PRD is **Draft v2** and still **not formally approved**.
 
@@ -30,6 +31,14 @@ Session 3, 2026-09-18. The owner accepted every recommendation for the technical
 - CI: GitHub Actions on every pull request.
 - Hindi: plain `en`/`hi` dictionaries with no i18n library (AD15 is now Decided).
 
+Session 4, 2026-09-18 (Phase 1 build):
+- `git init` on `main`, `.gitignore`, `.gitattributes` (`eol=lf`, because the team is on Windows and CI is Linux), docs committed.
+- `api/`: Express 5 + strict TS + zod + Drizzle + postgres.js. `/api/health` pings the database. 404 and error handlers already use the D-035 error shape. ESLint, Prettier, Vitest, 2 passing tests.
+- `web/`: Vite + React 19 + Tailwind v4 + TanStack Query + shadcn/ui. Design tokens from `DESIGN.md` are in `src/index.css`. ESLint, Prettier, Vitest, 2 passing tests. Placeholder `App.tsx` shows API and database status.
+- `docker-compose.yml` (db + api + proxy), `Dockerfile.proxy`, `api/Dockerfile`, `Caddyfile`, `.env.example`.
+- `.github/workflows/ci.yml`: two jobs (api with a Postgres service container, web), lint + type-check + test on every PR.
+- D-043 records the scaffold choices. `AGENTS.md`, `TESTING.md` and `ARCHITECTURE.md` updated with commands that were actually run.
+
 ## Currently In Progress
 
 Nothing is half-done. Waiting on the user for the remaining decisions (see Known Problems).
@@ -47,7 +56,15 @@ Nothing is half-done. Waiting on the user for the remaining decisions (see Known
   - D-025 / AD11: future Python ML service. Deliberately left Proposed; it matters only if ML is added.
   - Database backups (a nightly `pg_dump` is recommended but not confirmed), VM provider, domain name.
   - Scenario dataset format, volunteer bottom tab bar, map marker shapes (needed in Phases 3-5).
-- **Phase 1 items not yet answered:** git init permission, copying the synopsis and timeline PDFs into `docs/` (both are only in the user's Downloads), phase owners, and whether Paper Part 1 (due Sep 10) was submitted.
+- **From the 2026-09-18 plan review** (already applied to `PLAN.md`, `PRD.md`, `ARCHITECTURE.md`, `DESIGN.md`):
+  - Phase 2 (Oct 8 - Nov 3) is the highest-risk phase, not Phase 4. It holds two fixed external dates.
+  - Scenario data must vary Wait, Freshness and Reliability, or three formula terms are constant in the evaluation.
+  - The December exam dates gate the freeze date (Jan 10, or Jan 17 if they collide).
+  - Password reset is a new open PRD item (open item 7).
+- **Phase 1 items still not answered:** the VM provider and domain name (blocks the "runs on the VM over HTTPS" exit criterion), the GitHub remote (CI has never actually run), copying the synopsis and timeline PDFs into the repo (both are only in the user's Downloads), phase owners, and whether Paper Part 1 (due Sep 10) was submitted.
+- **Progress Report 1 is not written.** Due Sep 28 - Oct 7.
+- **`api` has 7 npm audit findings** (6 moderate, 1 high), all from `drizzle-kit`'s dev-only esbuild chain. `npm audit fix --force` would downgrade drizzle-kit to 0.18.1, which is worse. Left as is; it never ships to production.
+- **`PLAN.md` Phase 2 still lists `LOCATION_REQUEST` in the migration list**, but D-042 replaced that table with fields on the settings row. Fix when Phase 2 starts.
 - **Ask the supervisor:** the exact January deadline, whether end-semester exams fall in December, and what the Phase-I Exam expects.
 
 ## Important Context
@@ -73,12 +90,15 @@ Nothing is half-done. Waiting on the user for the remaining decisions (see Known
 
 - D-001 to D-025 are from session 1; D-025 is still Proposed.
 - D-026 to D-034 are from session 2, and D-035 to D-040 from session 3. See Recently Completed for both summaries.
+- D-041 and D-042 are the plan and data-model review. D-043 is session 4's scaffold choices.
 
 ## Next Steps
 
-1. Get answers to the still-open items above, the severity table and the evaluation method first (Paper Part 2 is due Oct 20). Then get the PRD approved.
-2. `git init`, then commit the docs. Only do this when the user asks.
-3. Follow `PLAN.md` Phase 1: scaffold `web/`, `api/` and `docker-compose.yml`, then fill in the Development, Build and Testing Commands sections in `AGENTS.md` with commands that really exist. Write each phase's detailed task plan with `superpowers:writing-plans` when that phase starts.
+1. **The severity rule table and the evaluation method.** Both are needed for Paper Part 2 (Oct 20), and the severity table blocks F5 and the queue. `PLAN.md` says a `[Provisional]` table goes into the PRD if the real one isn't decided by Sep 25.
+2. The rest of the open items above, then PRD approval.
+3. Pick the VM and domain, create the GitHub remote, push, and confirm CI actually passes there. Then deploy the scaffold and check a phone can grant location permission over HTTPS.
+4. Write Progress Report 1 (due Oct 7).
+5. Then Phase 2. Write its detailed task plan with `superpowers:writing-plans` when it starts.
 
 ## Things to Be Careful About
 
@@ -93,8 +113,8 @@ Nothing is half-done. Waiting on the user for the remaining decisions (see Known
 ## Session Handoff
 
 - Start with `AGENTS.md`, then this file.
-- Before any coding, confirm with the user:
+- Before any feature work, confirm with the user:
   - Is the PRD approved?
-  - The still-open items in Known Problems.
-  - Permission to run `git init`.
+  - The still-open items in Known Problems, severity table first.
 - Then follow `PLAN.md`.
+- **Tool defaults have drifted from the docs.** `npm create vite` now ships oxlint and no `strict`, and `shadcn init` only offers presets that pull a web font. D-043 explains what was done instead. Expect the same on the next tool upgrade: the docs win.

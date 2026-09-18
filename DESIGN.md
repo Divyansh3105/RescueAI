@@ -106,7 +106,7 @@ The layout has one shell per role (roles and access are defined in PRD AC18):
 - **Commander** (on-site and office commanders share this shell; English only):
   - A left sidebar nav on `lg` and up; it collapses into a menu below `lg`.
   - Sections: Queue, Map, Volunteers, Teams, Audit Log.
-  - Office commanders also get **Approvals**: selections waiting for approval, sorted by request priority. Each selection shows the same RecommendationCards and ScoreBreakdowns the on-site commander saw.
+  - Office commanders get an **Awaiting approval** filter on the Queue rather than a separate screen (D-042): the same split view, with the recommendation panel read-only and the ApprovalBar at the bottom. It shows the same RecommendationCards and ScoreBreakdowns the on-site commander saw.
   - **Queue uses a split view on `lg`:** the prioritized list on the left, the selected request's detail and recommendations on the right. Below `lg`, the detail opens as its own page.
 - **Admin:** the commander shell, plus Commanders, Weights, Data (scenario load and CSV export), and Audit Log.
 - **Map:** fills the content area. Its legend is always visible. Everything shown on the map is also available as a list (the queue, volunteers, teams).
@@ -139,7 +139,7 @@ Use shadcn/ui components before building custom ones. These project-specific com
   - After sending, the panel shows a StatusBadge "Awaiting approval" and the bar stays disabled until the office commander acts.
 - **ApprovalBar** (office commander):
   - Buttons: Approve (primary) and Send back (outline).
-  - It stays anchored at the bottom of the selection panel in Approvals.
+  - It stays anchored at the bottom of the read-only recommendation panel.
   - RecommendationCards in this view are read-only, with no checkboxes.
 - **LocationRequestBanner** (volunteer home):
   - A shadcn Alert (default variant) saying that commanders have asked volunteers to share their location, with a "Share my location" button in `lg` size.
@@ -226,7 +226,7 @@ Use shadcn/ui components before building custom ones. These project-specific com
 Each empty state has one sentence of text, plus at most one action:
 
 - **Queue:** "No pending requests."
-- **Approvals:** "No selections waiting for approval."
+- **Queue, Awaiting approval filter:** "No selections waiting for approval."
 - **Volunteer, no offer:**
   - When Available: "No offers yet. New offers appear here."
   - When Unavailable: "Turn on Available to receive offers."
