@@ -1051,3 +1051,29 @@ The MCP install minted an account-scoped Neon API key (`neon-cli-mcp-...`, id 33
 Verified 2026-09-18: `neon config plan` reports no drift, and the API connected to the `production` branch, with `/api/health` returning `{"status":"ok","db":"up"}`. Local development can now run against either the Docker PostgreSQL container or Neon. `ARCHITECTURE.md`, `AGENTS.md` and `README.md` updated.
 ### Alternatives Rejected
 Linking the project by hand through the Neon console, which keeps the repository clean but puts the configuration outside version control.
+
+## D-046 Render service settings: Singapore, and the direct Neon connection
+
+### Date
+2026-09-18
+### Status
+Accepted. Implements D-044.
+### Context
+Creating the Render service forced two choices that the plan did not cover.
+### Options Considered
+Region: Oregon (Render's default, and where the owner's other service runs) or Singapore. Connection: Neon's pooled connection string or the direct (unpooled) one.
+### Decision
+- **Region `singapore`.** Round-trip from Dehradun is roughly 60 ms rather than about 230 ms from Oregon.
+- **`DATABASE_URL` is Neon's direct (unpooled) connection string**, not the pooled one.
+### Reasoning
+**Region:** SM1 measures the median time from submission to office approval, and SM2/SM3 are run by evaluators in India. Every polled screen re-fetches about every 5 seconds, so a 170 ms difference per request is felt across the whole demo and sits inside the numbers the paper reports.
+
+**Connection:** Neon's pooled endpoint is PgBouncer in transaction mode, which does not support session-level prepared statements. `postgres.js` uses prepared statements by default, so the pooled string needs `prepare: false` in `api/src/db/client.ts` or queries fail in ways that look random. The pooled endpoint exists for serverless functions that open a connection per invocation. RescueAI is one long-lived Node process on a single instance that keeps its own pool, which is exactly the case the direct connection is for.
+### Trade-offs
+The direct connection means the instance holds real Postgres connections. At one free instance this is far below any Neon limit; if the service is ever scaled to several instances, revisit this and either raise the Neon compute size or move to the pooled string with `prepare: false`.
+Singapore splits the project's Render services across two regions, since the owner's other service is in Oregon. They are unrelated, so this costs nothing.
+### Consequences
+Service `srv-damfpbm7bikc73bgavj0`, URL <https://rescueai-70mu.onrender.com>, auto-deploying from `main`. `ARCHITECTURE.md` and `README.md` record the URL.
+**The health check path is empty.** `render.yaml` sets `healthCheckPath: /api/health`, but Render only reads `render.yaml` for Blueprint-created services, and this one was created through the API. Set it in the dashboard, or recreate the service as a Blueprint.
+### Alternatives Rejected
+Oregon (latency); the pooled connection string (silent prepared-statement failures with `postgres.js`).

@@ -4,7 +4,7 @@ _Last updated: 2026-09-18 (session 4). Update this after every meaningful sessio
 
 ## Current Status
 
-- **Scaffolded, no features.** It is a git repository now, pushed to <https://github.com/Divyansh3105/RescueAI> on `main`, with CI green. `web/` and `api/` exist, build, lint, type-check and each pass one trivial test. `docker compose up` builds one image holding the API with the SPA inside it and serves both from `http://localhost:3000` - verified on 2026-09-18: health returned `{"status":"ok","db":"up"}`, the SPA rendered it in a browser, a deep route fell back to `index.html`, and an unknown `/api/*` route returned the D-035 error shape.
+- **Scaffolded, no features.** It is a git repository now, pushed to <https://github.com/Divyansh3105/RescueAI> on `main`, with CI green. `web/` and `api/` exist, build, lint, type-check and each pass one trivial test. **Deployed and live at <https://rescueai-70mu.onrender.com>** (Render free, Singapore, auto-deploy from `main`), reading from Neon. `docker compose up` builds the same image locally and serves it from `http://localhost:3000` - verified on 2026-09-18: health returned `{"status":"ok","db":"up"}`, the SPA rendered it in a browser, a deep route fell back to `index.html`, and an unknown `/api/*` route returned the D-035 error shape.
 - **No PRD feature is implemented.** No database table, no Drizzle schema, no migration, no auth, no scoring, no route beyond `/api/health`. All of that is Phase 2.
 - The documentation set: `PRD.md`, `AGENTS.md` (the entry point), `DESIGN.md`, `ARCHITECTURE.md`, `RULES.md`, `DECISIONS.md`, `TESTING.md`, `PLAN.md`, `MEMORY.md`, and `CLAUDE.md` (which just imports AGENTS.md).
 - The stack, tooling and coding rules are decided. The PRD is **Draft v2** and still **not formally approved**.
@@ -64,7 +64,7 @@ Nothing is half-done. Waiting on the user for the remaining decisions (see Known
   - Scenario data must vary Wait, Freshness and Reliability, or three formula terms are constant in the evaluation.
   - The December exam dates gate the freeze date (Jan 10, or Jan 17 if they collide).
   - Password reset is a new open PRD item (open item 7).
-- **Phase 1 items still not answered:** the domain name, and **Render** - the Neon side is done, but nothing is deployed to Render yet. Also copying the synopsis and timeline PDFs into the repo (both are only in the user's Downloads), phase owners, and whether Paper Part 1 (due Sep 10) was submitted.
+- **Phase 1 items still not answered:** the domain name, and copying the synopsis and timeline PDFs into the repo (both are only in the user's Downloads), phase owners, and whether Paper Part 1 (due Sep 10) was submitted.
 - **Progress Report 1 is not written.** Due Sep 28 - Oct 7.
 - **`api` has 7 npm audit findings** (6 moderate, 1 high), all from `drizzle-kit`'s dev-only esbuild chain. `npm audit fix --force` would downgrade drizzle-kit to 0.18.1, which is worse. Left as is; it never ships to production.
 - **`PLAN.md` Phase 2 still lists `LOCATION_REQUEST` in the migration list**, but D-042 replaced that table with fields on the settings row. Fix when Phase 2 starts.
@@ -93,13 +93,13 @@ Nothing is half-done. Waiting on the user for the remaining decisions (see Known
 
 - D-001 to D-025 are from session 1; D-025 is still Proposed.
 - D-026 to D-034 are from session 2, and D-035 to D-040 from session 3. See Recently Completed for both summaries.
-- D-041 and D-042 are the plan and data-model review. D-043 (scaffold choices), D-044 (Render + Neon hosting, superseding AD6) and D-045 (Neon CLI tooling in the repo) are from session 4.
+- D-041 and D-042 are the plan and data-model review. D-043 (scaffold choices), D-044 (Render + Neon hosting, superseding AD6), D-045 (Neon CLI tooling in the repo) and D-046 (Singapore region, direct Neon connection) are from session 4.
 
 ## Next Steps
 
 1. **The severity rule table and the evaluation method.** Both are needed for Paper Part 2 (Oct 20), and the severity table blocks F5 and the queue. `PLAN.md` says a `[Provisional]` table goes into the PRD if the real one isn't decided by Sep 25.
 2. The rest of the open items above, then PRD approval.
-3. **Neon is done.** Create the Render service, connect the repo (it reads `render.yaml`), and set `DATABASE_URL` in the Render dashboard from `.env.local`'s value - do not paste it anywhere else. Then deploy. Then check a phone can grant location permission on the Render HTTPS URL. **Warm the service before any SM1 timing run in Phase 6** - a free instance sleeps after ~15 min and cold-starts in ~50 s, which would silently inflate the median (D-044).
+3. **Deployment is done.** Remaining: check on a real Android phone that <https://rescueai-70mu.onrender.com> can get location permission (the last Phase 1 deploy criterion), and set the health check path to `/api/health` in the Render dashboard - `render.yaml` sets it but Render only reads that file for Blueprint-created services (D-046). Then check a phone can grant location permission on the Render HTTPS URL. **Warm the service before any SM1 timing run in Phase 6** - a free instance sleeps after ~15 min and cold-starts in ~50 s, which would silently inflate the median (D-044).
 4. Write Progress Report 1 (due Oct 7).
 5. Then Phase 2. Write its detailed task plan with `superpowers:writing-plans` when it starts.
 
@@ -107,6 +107,7 @@ Nothing is half-done. Waiting on the user for the remaining decisions (see Known
 
 - **Files get reformatted between turns.** Always Read a file before editing it; never edit from memory.
 - **`.env.local` holds the real Neon `DATABASE_URL`.** It is git-ignored. Never print it, paste it into a file, or put it in a commit - pass it with `node --env-file=../.env.local`.
+- **The `neondb_owner` password was pasted into a chat transcript on 2026-09-18**, with the owner's informed agreement, to set `DATABASE_URL` on Render through the Render MCP. **Rotating it is still worth doing**: reset the role password in the Neon console, then update the Render environment variable and re-run `neon link`. Prefer having the owner set secrets by hand next time.
 - **A root `package.json` exists but is NOT a workspace.** It carries the Neon CLI packages only. Application dependencies go in `web/` or `api/` (D-043, D-045).
 - **Don't document commands or tools that don't exist yet.** The AGENTS.md command sections stay "Not established" until they are real.
 - **Guard the hard invariants above all:**

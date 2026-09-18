@@ -89,7 +89,7 @@ npm only. `web/` and `api/` are separate packages with their own `package-lock.j
 | `api/` | `node --env-file=../.env.local --import tsx src/index.ts` | Run the API against the **real Neon** `production` branch instead of the local container |
 | repo root | `neon config plan` | Preview what `neon deploy` would change on the linked branch |
 
-The Neon project is `super-hill-50061651`, branch `production`, linked on 2026-09-18 (D-045). Never print or paste a connection string into a file, a log or a commit; pass `.env.local` with `--env-file` instead.
+Deployed at <https://rescueai-70mu.onrender.com>, auto-deploying from `main`. The Neon project is `super-hill-50061651`, branch `production`, linked on 2026-09-18 (D-045). Never print or paste a connection string into a file, a log or a commit; pass `.env.local` with `--env-file` instead.
 
 `api/npm run db:generate` and `api/npm run db:migrate` wrap drizzle-kit. They do nothing useful until the Phase 2 schema exists.
 

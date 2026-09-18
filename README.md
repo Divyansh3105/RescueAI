@@ -11,6 +11,9 @@ append-only audit log.
 B.Tech major project **CSE27-364**, Graphic Era Hill University, Dehradun. The prototype is
 demonstrated on flood and landslide scenarios in Uttarakhand.
 
+**Deployed:** <https://rescueai-70mu.onrender.com> — auto-deploys from `main`. It is a free
+instance, so it sleeps after ~15 minutes idle and the first request then takes ~50 s.
+
 > **Status: scaffolded, no features.** The packages build, lint, type-check and deploy, and
 > `/api/health` answers. No PRD feature (F1–F14) is implemented yet — there is no
 > database schema, no auth and no scoring. See [`MEMORY.md`](MEMORY.md) for exactly where things
