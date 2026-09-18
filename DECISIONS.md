@@ -1025,3 +1025,29 @@ Neon rather than Render PostgreSQL because **Render deletes a free database afte
 `ARCHITECTURE.md` updated: system overview, system diagram, tech stack, repository structure, API architecture, scalability, deployment and the AD6 and AD12 rows. `README.md` and `AGENTS.md` updated. The domain name and the database backup strategy are still Not established. Deployment becomes Render's automatic build on push to `main`, replacing the manual VM deploy.
 ### Alternatives Rejected
 Vercel or Netlify for the SPA with a separate API host (cross-site cookie); Vercel serverless functions (incompatible with the decided session design); Render's own free PostgreSQL (deleted after 30 days); keeping the paid VM.
+
+## D-045 Neon CLI tooling in the repository
+
+### Date
+2026-09-18
+### Status
+Accepted. Implements D-044.
+### Context
+D-044 chose Neon for PostgreSQL. Neon's setup adds files to the repository, and one of them contradicts D-043.
+### Options Considered
+Run the Neon CLI setup as documented, or link the project by hand and keep the repository free of Neon tooling.
+### Decision
+Ran the documented setup. Project `super-hill-50061651`, branch `production`, org `org-quiet-unit-35748898`, linked on 2026-09-18.
+- **`neon.ts`** is the branch policy, applied with `neon deploy`. It is currently `defineConfig({})` - no managed services, no branch overrides, so Neon's project defaults apply.
+- **A root `package.json`** now exists, holding `@neon/config` and `@neon/env` only. It is marked `private` and carries a comment saying so. **This is a narrow exception to D-043's "two independent npm packages, no workspace root":** it is not a workspace, declares no scripts, and `web/` and `api/` remain independent with their own lockfiles.
+- **`.claude/skills/` and `skills-lock.json` are committed**, so all three teammates get the same Neon agent skills (about 328 KB, 25 files).
+- **`.neon` and `.env.local` are git-ignored.** `neon link` writes the real `DATABASE_URL` into `.env.local`; it is a secret and never committed (RULES.md -> Security Rules). `neon link` added `.neon` to `.gitignore` itself.
+### Reasoning
+The CLI path is the one Neon documents and keeps the link reproducible for the other two teammates. The root manifest is the cost of `neon.ts` being TypeScript that imports a package; refusing it would mean hand-editing project settings in the Neon console instead, which is not reviewable in git.
+### Trade-offs
+A root `package.json` invites someone to add application dependencies or scripts there. It is marked `private` with a comment, but that is a convention, not a guard.
+The MCP install minted an account-scoped Neon API key (`neon-cli-mcp-...`, id 3346425) stored in the agent configs outside the repository. Revoke with `neon api-keys revoke 3346425` if the machine is compromised or an agent config is shared.
+### Consequences
+Verified 2026-09-18: `neon config plan` reports no drift, and the API connected to the `production` branch, with `/api/health` returning `{"status":"ok","db":"up"}`. Local development can now run against either the Docker PostgreSQL container or Neon. `ARCHITECTURE.md`, `AGENTS.md` and `README.md` updated.
+### Alternatives Rejected
+Linking the project by hand through the Neon console, which keeps the repository clean but puts the configuration outside version control.

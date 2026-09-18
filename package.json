@@ -1,0 +1,9 @@
+{
+  "name": "rescueai",
+  "private": true,
+  "description": "Root manifest for Neon CLI tooling only. The application lives in web/ and api/, which are independent packages (D-043).",
+  "dependencies": {
+    "@neon/config": "^1.7.2",
+    "@neon/env": "^1.4.3"
+  }
+}

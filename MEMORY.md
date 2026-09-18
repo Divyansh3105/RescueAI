@@ -38,6 +38,7 @@ Session 4, 2026-09-18 (Phase 1 build):
 - One root `Dockerfile` (SPA + API), `docker-compose.yml` (db + app) building that same image, `render.yaml`, `.env.example`.
 - **D-044: hosting moved to Render free tier + Neon PostgreSQL**, replacing the rented VM (AD6). One origin, so the session cookie stays `SameSite=Lax` and login works on phones. Caddy, `Caddyfile`, `Dockerfile.proxy` and `api/Dockerfile` deleted.
 - `README.md` and MIT `LICENSE` added. Remote set to `https://github.com/Divyansh3105/RescueAI.git`.
+- **Neon is live (D-045).** Project `super-hill-50061651`, branch `production`, org `org-quiet-unit-35748898`, linked 2026-09-18. `neon.ts` is the branch policy (`defineConfig({})` - project defaults). The API connected to it: `/api/health` returned `{"status":"ok","db":"up"}`. Neon agent skills committed under `.claude/skills/`.
 - `.github/workflows/ci.yml`: two jobs (api with a Postgres service container, web), lint + type-check + test on every PR. **Pushed to <https://github.com/Divyansh3105/RescueAI>; both jobs passed on GitHub.**
 - D-043 records the scaffold choices. `AGENTS.md`, `TESTING.md` and `ARCHITECTURE.md` updated with commands that were actually run.
 
@@ -63,7 +64,7 @@ Nothing is half-done. Waiting on the user for the remaining decisions (see Known
   - Scenario data must vary Wait, Freshness and Reliability, or three formula terms are constant in the evaluation.
   - The December exam dates gate the freeze date (Jan 10, or Jan 17 if they collide).
   - Password reset is a new open PRD item (open item 7).
-- **Phase 1 items still not answered:** the domain name, whether the Render and Neon accounts exist yet (nothing is deployed), copying the synopsis and timeline PDFs into the repo (both are only in the user's Downloads), phase owners, and whether Paper Part 1 (due Sep 10) was submitted.
+- **Phase 1 items still not answered:** the domain name, and **Render** - the Neon side is done, but nothing is deployed to Render yet. Also copying the synopsis and timeline PDFs into the repo (both are only in the user's Downloads), phase owners, and whether Paper Part 1 (due Sep 10) was submitted.
 - **Progress Report 1 is not written.** Due Sep 28 - Oct 7.
 - **`api` has 7 npm audit findings** (6 moderate, 1 high), all from `drizzle-kit`'s dev-only esbuild chain. `npm audit fix --force` would downgrade drizzle-kit to 0.18.1, which is worse. Left as is; it never ships to production.
 - **`PLAN.md` Phase 2 still lists `LOCATION_REQUEST` in the migration list**, but D-042 replaced that table with fields on the settings row. Fix when Phase 2 starts.
@@ -92,19 +93,21 @@ Nothing is half-done. Waiting on the user for the remaining decisions (see Known
 
 - D-001 to D-025 are from session 1; D-025 is still Proposed.
 - D-026 to D-034 are from session 2, and D-035 to D-040 from session 3. See Recently Completed for both summaries.
-- D-041 and D-042 are the plan and data-model review. D-043 (scaffold choices) and D-044 (Render + Neon hosting, superseding AD6) are from session 4.
+- D-041 and D-042 are the plan and data-model review. D-043 (scaffold choices), D-044 (Render + Neon hosting, superseding AD6) and D-045 (Neon CLI tooling in the repo) are from session 4.
 
 ## Next Steps
 
 1. **The severity rule table and the evaluation method.** Both are needed for Paper Part 2 (Oct 20), and the severity table blocks F5 and the queue. `PLAN.md` says a `[Provisional]` table goes into the PRD if the real one isn't decided by Sep 25.
 2. The rest of the open items above, then PRD approval.
-3. Create the Render and Neon accounts, connect the repo, set `DATABASE_URL` from Neon in the Render dashboard, and deploy. Then check a phone can grant location permission on the Render HTTPS URL. **Warm the service before any SM1 timing run in Phase 6** - a free instance sleeps after ~15 min and cold-starts in ~50 s, which would silently inflate the median (D-044).
+3. **Neon is done.** Create the Render service, connect the repo (it reads `render.yaml`), and set `DATABASE_URL` in the Render dashboard from `.env.local`'s value - do not paste it anywhere else. Then deploy. Then check a phone can grant location permission on the Render HTTPS URL. **Warm the service before any SM1 timing run in Phase 6** - a free instance sleeps after ~15 min and cold-starts in ~50 s, which would silently inflate the median (D-044).
 4. Write Progress Report 1 (due Oct 7).
 5. Then Phase 2. Write its detailed task plan with `superpowers:writing-plans` when it starts.
 
 ## Things to Be Careful About
 
 - **Files get reformatted between turns.** Always Read a file before editing it; never edit from memory.
+- **`.env.local` holds the real Neon `DATABASE_URL`.** It is git-ignored. Never print it, paste it into a file, or put it in a commit - pass it with `node --env-file=../.env.local`.
+- **A root `package.json` exists but is NOT a workspace.** It carries the Neon CLI packages only. Application dependencies go in `web/` or `api/` (D-043, D-045).
 - **Don't document commands or tools that don't exist yet.** The AGENTS.md command sections stay "Not established" until they are real.
 - **Guard the hard invariants above all:**
   - no dispatch without a logged on-site selection **and** a logged office approval

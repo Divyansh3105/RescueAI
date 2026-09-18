@@ -61,7 +61,13 @@ api/                   Express API (strict TypeScript)
 Dockerfile             Builds web/ and api/ into one image. This is the deployed unit.
 docker-compose.yml     db + app, building that same Dockerfile. Local stack.
 render.yaml            Render service definition. DATABASE_URL is set in the dashboard.
+neon.ts                Neon branch policy, applied with `neon deploy` (D-045)
+package.json           Root manifest for the Neon CLI only - NOT a workspace. Put
+                       application dependencies in web/ or api/ (D-043, D-045).
+.claude/skills/        Neon agent skills, installed by `neon skills`
 .env.example           Copy to .env for docker compose. POSTGRES_PASSWORD is required.
+.env.local             Written by `neon link`. Holds the real DATABASE_URL.
+                       Git-ignored - it is a secret, never commit it.
 .github/workflows/ci.yml  Lint, type-check and tests for both packages on every PR
 disasterIND.csv        EM-DAT India disaster records (783 rows), reference data for scenarios
 ```
@@ -80,6 +86,10 @@ npm only. `web/` and `api/` are separate packages with their own `package-lock.j
 | `api/` | `npm run format` / `npm run format:check` | Prettier |
 | repo root | `cp .env.example .env` then `docker compose up --build` | Whole stack on `http://localhost:3000` - the same image Render deploys |
 | repo root | `docker compose down` | Stop it. Add `-v` to also drop the database volume. |
+| `api/` | `node --env-file=../.env.local --import tsx src/index.ts` | Run the API against the **real Neon** `production` branch instead of the local container |
+| repo root | `neon config plan` | Preview what `neon deploy` would change on the linked branch |
+
+The Neon project is `super-hill-50061651`, branch `production`, linked on 2026-09-18 (D-045). Never print or paste a connection string into a file, a log or a commit; pass `.env.local` with `--env-file` instead.
 
 `api/npm run db:generate` and `api/npm run db:migrate` wrap drizzle-kit. They do nothing useful until the Phase 2 schema exists.
 

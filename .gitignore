@@ -8,5 +8,4 @@ build/
 .playwright-mcp/
 coverage/
 .DS_Store
-caddy_data/
-caddy_config/
+.neon

@@ -59,6 +59,13 @@ stops it and drops the database volume.
 cd api && npm install && npm run dev
 ```
 
+To point the API at the real Neon database instead of the local container, run
+`neon link` once (it writes `.env.local`, which is git-ignored), then:
+
+```bash
+cd api && node --env-file=../.env.local --import tsx src/index.ts
+```
+
 **Just the SPA** (proxies `/api` to port 3000):
 
 ```bash
@@ -85,6 +92,7 @@ api/
 Dockerfile                builds web/ and api/ into the one deployed image
 docker-compose.yml        db + app, building that same image
 render.yaml               Render service definition
+neon.ts                   Neon branch policy, applied with `neon deploy`
 .github/workflows/ci.yml  lint, type-check and tests on every pull request
 disasterIND.csv           EM-DAT India disaster records, reference data for scenarios
 ```
