@@ -50,10 +50,10 @@ Nothing is half-done. Waiting on the user for the remaining decisions (see Known
 
 - **The PRD has not been explicitly approved** (now Draft v2).
 - **Still open and needed by about Oct 15 for Paper Part 2 (Methodology):**
-  - the severity rule table (PRD open item 1); this blocks F5 and the queue
+  - ~~the severity rule table~~ **closed 2026-09-18 (D-047)**: a provisional points table is in PRD F5, marked `[Provisional]`. Authored from reasoning, **not** from domain consultation and **not** from `disasterIND.csv` (that file is event-level EM-DAT data with no per-request trapped/injured counts, so it cannot calibrate this rule - do not claim otherwise in the paper). The weak point is that a blank count scores 0; if Phase 6 finds the queue clusters at severity 1-2, score blanks as 1 point or make the F1 fields required.
   - severity scaling (Sev−1)/4, the team score formula, and the 2-hour Freshness window (open items 2, 3 and 6; agent proposals, not confirmed)
   - whether any shared commander action belongs to one commander type, and whether the office commander can edit a selection (open items 4 and 5)
-  - the **evaluation method** (who builds ground truth, how the manual baseline runs, who the SUS evaluators are). When asked this, the user answered about approval levels instead, so it was never answered.
+  - the **evaluation method**. **The synopsis Section 4.9 already fixes the shape** and the paper must stay consistent with it: SM2 ground truth comes from "ground-truth assignments from the simulated scenarios", SM1 from "a manual coordination baseline performed on the same scenarios", SM3 from "a standard usability questionnaire administered to evaluators acting in the commander role". Still open: **who** builds the ground truth and **who** the evaluators are. Asked twice; never answered.
 - **Provisional values** to reconsider in Phase 6: band cutoffs 0.70 / 0.50 and the 60-minute Wait cap. SM2 is measured on the top 5 of the 10-item shortlist (the agent's default; tell the user if it's questioned).
 - **Still Proposed or not established:**
   - D-025 / AD11: future Python ML service. Deliberately left Proposed; it matters only if ML is added.

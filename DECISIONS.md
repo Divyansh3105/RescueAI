@@ -1077,3 +1077,41 @@ Service `srv-damfpbm7bikc73bgavj0`, URL <https://rescueai-70mu.onrender.com>, au
 **The health check path is empty.** `render.yaml` sets `healthCheckPath: /api/health`, but Render only reads `render.yaml` for Blueprint-created services, and this one was created through the API. Set it in the dashboard, or recreate the service as a Blueprint.
 ### Alternatives Rejected
 Oregon (latency); the pooled connection string (silent prepared-statement failures with `postgres.js`).
+
+## D-047 Provisional severity rule table
+
+### Date
+2026-09-18
+### Status
+Accepted as **[Provisional]**. Closes PRD open item 1. Must be reconsidered against scenario data in Phase 6.
+### Context
+PRD F5 requires a documented, deterministic 1-5 severity rule over hazard type, people trapped and people injured, but left the table to "domain consultation". It blocks F5, the F6 queue and the Methodology section of Paper Part 2 (due Oct 20). `PLAN.md` set a fallback: if the real table is not decided by Sep 25, a provisional one goes into the PRD so nothing downstream stalls.
+
+Two sources were checked and neither supplies a table:
+- **The project synopsis** (Section 4.3) estimates severity with a gradient-boosted classifier trained on hazard type, weather and terrain. That is the ML approach the MVP deliberately dropped, and it is listed under PRD Future Features.
+- **`disasterIND.csv`** (EM-DAT, 783 India records) is **event-level**: `Total Deaths`, `No. Injured` and `No. Affected` aggregated per disaster event across a region and over days. It contains no per-request trapped or injured counts, so it cannot calibrate a per-request rule. Presenting a table as derived from it would be false precision in the paper.
+### Options Considered
+A lookup table per (hazard, trapped band, injured band); an additive points rule; a weighted formula rounded to 1-5.
+### Decision
+An additive points rule:
+
+`severity = min(5, 1 + trapped_points + injured_points + hazard_points)`
+
+- trapped: 0 → 0, 1-2 → 2, 3-5 → 3, ≥6 → 4
+- injured: 0 → 0, 1-2 → 1, 3-5 → 2, ≥6 → 3
+- hazard: Flood → 0, Landslide → +1
+- **A blank count scores 0.** People trapped and people injured are optional in F1.
+### Reasoning
+Additive points are monotonic in every input by construction, saturate cleanly at 5, and fit in two lines of a paper. A full lookup table over two hazards and four bands each is 32 rows that a reader cannot check by eye and that is easy to make non-monotonic by accident.
+
+Trapped is weighted above injured because entrapment is time-critical in a way that injury alone is not. Landslide carries +1 over flood because burial and crush injury give a much shorter survival window than flood isolation, which matches Uttarakhand case-fatality patterns.
+
+Blank counts score 0 rather than assuming a casualty: it is the simpler rule to state and defend, and scoring an unknown above a confirmed zero needs a justification this project cannot supply from data.
+### Trade-offs
+**The blank-count rule is the weak point and was flagged to the owner before it was adopted.** People trapped and injured are optional on an emergency form, so a citizen submitting only location, hazard and phone gets severity 1 for a flood or 2 for a landslide. If most real submissions look like that, the queue clusters at the bottom and separation comes from Vul, Wait and commander override instead of severity. Phase 6 should measure this on the scenario data; if the queue is flat, either score a blank count as 1 point or make the fields required (which is a PRD change to F1, not a rule change).
+
+The table is authored from reasoning, not from domain consultation or data. Paper Part 2 must describe it that way and must not claim it was derived from the EM-DAT records.
+### Consequences
+PRD F5 now carries the table, marked `[Provisional]`. Open item 1 is closed; the entry is added to the Provisional list for Phase 6. Phase 2 can implement `api/src/scoring/` and the AC3 unit test against it. Open items 2, 3 and 6 (severity scaling, team score formula, Freshness window) are still open and still block Paper Part 2.
+### Alternatives Rejected
+A 32-row lookup table (unreadable, easy to break monotonicity); a weighted continuous formula rounded to 1-5 (harder to explain and to test for AC3); deriving a table from `disasterIND.csv` (the data does not support it); waiting for domain consultation past the Sep 25 fallback date.

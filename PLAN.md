@@ -55,7 +55,7 @@ A phase ends only when its exit criteria hold and the Required Checks in `TESTIN
 
 **Decisions to close first.** Paper Part 2 (Oct 20) has to describe the final formulas, so these are urgent:
 1. Approve `PRD.md` (now Draft v2).
-2. **Severity rule table** (PRD open item 1).
+2. ~~**Severity rule table** (PRD open item 1).~~ **Done 2026-09-18 (D-047):** a provisional points table is in PRD F5. Still needs domain confirmation, and Phase 6 must re-check it.
 3. The remaining formula details: severity scaling, the team score, and the 2-hour Freshness window (PRD open items 2, 3 and 6).
 4. Whether any shared commander action belongs to only one commander type, and whether the office commander can edit a selection (PRD open items 4 and 5).
 5. The evaluation method for the paper: who builds the ground truth, how the manual baseline runs, and who the SUS evaluators are.
@@ -77,7 +77,7 @@ Already decided: on 2026-09-15 (D-026 to D-034) band cutoffs and the Wait cap (b
 **Exit criteria:**
 - Decisions 1–4 are answered and recorded in `PRD.md` / `DECISIONS.md`.
 - **The December university exam dates are confirmed.** If they overlap Phase 4, move the feature freeze to Jan 17 and pull Phase 4 work forward into Phase 3.
-- **Severity table fallback:** if the real table isn't decided by Sep 25, a provisional table goes into `PRD.md` marked `[Provisional]`, so Phase 2 and Paper Part 2 aren't blocked.
+- ~~**Severity table fallback:** if the real table isn't decided by Sep 25, a provisional table goes into `PRD.md` marked `[Provisional]`.~~ **Taken 2026-09-18, ahead of the date (D-047).**
 - ~~Lint, type-check and tests pass locally in `web/` and `api/`.~~ Done, and in CI.
 - The empty app loads over HTTPS (**done** - <https://rescueai-70mu.onrender.com>), **and a phone can grant it location permission (still to check)**.
 - ~~The "Not established" command sections in `AGENTS.md` and `TESTING.md` list commands that have actually been run.~~ Done.
@@ -254,7 +254,7 @@ Already decided: on 2026-09-15 (D-026 to D-034) band cutoffs and the Wait cap (b
 
 | Risk | Impact | Mitigation |
 |---|---|---|
-| Formula decisions not made by about Oct 15 | Paper Part 2 (Oct 20) can't describe the method | Adopt documented provisional values in Phase 1; scoring is isolated, so values can change later |
+| Formula decisions not made by about Oct 15 | Paper Part 2 (Oct 20) can't describe the method | Adopt documented provisional values in Phase 1; scoring is isolated, so values can change later. **Severity table done (D-047); open items 2, 3 and 6 remain.** |
 | Phase-I Exam demo not ready | Weak Phase-I evaluation | Keep the exam slice thin (form → severity → queue) and deploy it before Oct 24 |
 | University end-semester exams in December | Phase 4 loses time | Confirm the exam dates now; if they fall in December, start Phase 4 work early in Phase 3 and move the freeze no later than Jan 17 |
 | Evaluation data takes longer than coding | No results for Paper Part 3 | Start scenarios and ground truth in Phase 4 (owner B) |

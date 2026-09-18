@@ -90,7 +90,30 @@ During disaster response, commanders decide which rescue request to serve first 
 **F5 — Severity estimation (rule-based) with override**
 - Severity is set automatically on a 1–5 scale by a documented, deterministic rule. The rule uses hazard type, number trapped and number injured.
 - A commander can override severity. Each override is logged with the old value, the new value, the commander and the time.
-- **[Assumption]** The team defines the actual rule table from domain consultation before implementation starts.
+- **[Provisional]** The rule is a points table (decided 2026-09-18, D-047). It uses only the three inputs above, is monotonic in each of them, and saturates at 5:
+
+  `severity = min(5, 1 + trapped_points + injured_points + hazard_points)`
+
+  | Input | Value | Points |
+  |---|---|---|
+  | People trapped | 0 | 0 |
+  | | 1-2 | 2 |
+  | | 3-5 | 3 |
+  | | 6 or more | 4 |
+  | People injured | 0 | 0 |
+  | | 1-2 | 1 |
+  | | 3-5 | 2 |
+  | | 6 or more | 3 |
+  | Hazard type | Flood | 0 |
+  | | Landslide | +1 |
+
+  **A blank count is scored as 0**, because people trapped and people injured are optional in F1.
+
+  Worked examples: Flood with nobody trapped or injured = 1. Flood with 1 trapped = 3. Flood with 1 trapped and 2 injured = 4. Landslide with 1 trapped = 4. Landslide with 3 trapped = 5.
+
+  Landslide carries +1 because burial and crush injury give a much shorter survival window than flood isolation.
+
+  **This table is provisional and must be reconsidered against scenario data in Phase 6.** The value most likely to need changing is the blank-count rule: if most real submissions omit the optional counts, the queue clusters at severity 1-2 and depends on Vul, Wait and commander override to separate requests.
 
 **F6 — Prioritized request queue**
 - The queue shows Pending and In-Progress requests, sorted by priority score:
@@ -304,7 +327,7 @@ The owner confirmed these targets on 2026-09-15. They are not yet grounded in do
 ## Open Items and Provisional Values
 
 **Still to confirm ([Assumption]):**
-1. The severity rule table (F5) is still to be defined by the team.
+1. ~~The severity rule table (F5).~~ **Closed 2026-09-18 (D-047):** a provisional points table is now in F5. It is `[Provisional]`, not confirmed by domain consultation.
 2. Severity scaling `(severity − 1) ÷ 4` (F6).
 3. The team score formula (F7).
 4. No shared commander action is restricted to one commander type (Target Users).
@@ -312,9 +335,10 @@ The owner confirmed these targets on 2026-09-15. They are not yet grounded in do
 6. The 2-hour window in the Freshness term (F7).
 7. **Password reset is missing.** Nothing lets a volunteer who forgot their password back in, and only the Admin creates commander accounts. Either a commander can reset a volunteer's password, or this is accepted as a known limitation.
 
-**Provisional: decided 2026-09-15, reconsider against scenario data in Phase 6 ([Provisional]):**
-- Priority band cutoffs: Critical ≥ 0.70, High ≥ 0.50 (F6).
-- Wait reaches its maximum after 60 minutes (F6).
+**Provisional: reconsider against scenario data in Phase 6 ([Provisional]):**
+- Priority band cutoffs: Critical ≥ 0.70, High ≥ 0.50 (F6). Decided 2026-09-15.
+- Wait reaches its maximum after 60 minutes (F6). Decided 2026-09-15.
+- The severity rule table, including scoring a blank count as 0 (F5). Decided 2026-09-18, D-047.
 
 **Confirmed by the owner on 2026-09-15** (details in `DECISIONS.md` D-026 to D-034):
 - Proximity falls to 0 at 25 km.
