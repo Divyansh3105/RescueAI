@@ -8,7 +8,7 @@ _Created 2026-09-14. Updated 2026-09-15 to follow the department's official time
 
 | # | Milestone | Official date | What the project must have by then | Plan phase |
 |---|---|---|---|---|
-| 4 | Research Paper Part 1: Introduction and Literature Survey | Sep 10, 2026 (passed) | — | Check whether this was submitted |
+| 4 | Research Paper Part 1: Introduction and Literature Survey | Sep 10, 2026 | — | **Submitted** (confirmed by the owner 2026-09-18) |
 | 5 | Progress Report 1 | Sep 28 – Oct 7, 2026 | Requirements, architecture, design, plan, setup status | End of 1 |
 | 6 | Research Paper Part 2: Methodology | Oct 20, 2026 | Final formulas, severity rule, architecture, evaluation method | Middle of 2 |
 | 7 | **Major Project Phase-I Examination** | Oct 26 – Nov 3, 2026 | A working demo of part of the system | End of 2 |
@@ -261,7 +261,7 @@ Already decided: on 2026-09-15 (D-026 to D-034) band cutoffs and the Wait cap (b
 | "January 2027" deadline is earlier than Jan 31 | Phase 6 squeezed | Get the exact date from the supervisor and shift the freeze to match |
 | Scopus review takes too long for April acceptance | Milestone 13 missed | Pick a conference with a quick decision cycle; shortlist venues in January |
 | VM or domain lapses before May | Demo fails at Phase-II Exam | Pay for hosting through May 2027; keep a local Docker Compose fallback |
-| Paper Part 1 (Sep 10) status unknown | Part 2 builds on a missing Part 1 | Confirm it was submitted |
+| ~~Paper Part 1 status unknown~~ | — | **Closed 2026-09-18: submitted.** |
 | Two-level approval and Hindi add work to Phases 3–4 | The Jan 10 freeze slips | Build the approval view by reusing the recommendation panel; translate only citizen and volunteer screens |
 | Phase 2 is overloaded: schema, login, scoring, a demo and a paper section in 13 working days | Paper Part 2 or the Phase-I demo slips | Keep the demo slice bare; run the data layer (A) and scoring core (B) in parallel; drop demo polish first |
 | Scenario data has constant Wait, Freshness or Reliability | Three formula terms do nothing in your own evaluation, and the paper can't defend them | Backdate times and vary location ages and histories (see Phase 4) |
