@@ -2,7 +2,7 @@
 
 Canonical instructions for AI coding agents working on RescueAI. Read this first on every task.
 
-> **Project state (2026-09-18): scaffolded, no features.** The repository is a git repository with the documentation set plus two empty packages, `web/` and `api/`. Both build, lint, type-check and run one trivial test. `docker compose up` serves the SPA and `/api/health` over HTTPS. GitHub Actions runs the checks on every pull request. **No PRD feature (F1-F14) is implemented and no database table exists yet.** Any section below that says **Not established** must be filled in, in the same change that establishes it.
+> **Project state (2026-09-18): scaffolded, no features.** The repository is a git repository with the documentation set plus two empty packages, `web/` and `api/`. Both build, lint, type-check and run one trivial test. `docker compose up` serves the SPA and `/api/health` from one origin. It deploys to Render (free) with Neon PostgreSQL (D-044). GitHub Actions runs the checks on every pull request. **No PRD feature (F1-F14) is implemented and no database table exists yet.** Any section below that says **Not established** must be filled in, in the same change that establishes it.
 
 ## Project Overview
 
@@ -58,9 +58,9 @@ api/                   Express API (strict TypeScript)
   src/scoring/         empty - pure ranking functions land in Phase 2
   src/db/              Drizzle client; schema.ts is an empty placeholder until Phase 2
   drizzle.config.ts    drizzle-kit config (migrations output to api/drizzle/)
-docker-compose.yml     db + api + proxy. Only the proxy publishes ports.
-Dockerfile.proxy       Builds the SPA, then serves it from Caddy with /api proxied
-Caddyfile              TLS and routing. SITE_ADDRESS env var picks the domain.
+Dockerfile             Builds web/ and api/ into one image. This is the deployed unit.
+docker-compose.yml     db + app, building that same Dockerfile. Local stack.
+render.yaml            Render service definition. DATABASE_URL is set in the dashboard.
 .env.example           Copy to .env for docker compose. POSTGRES_PASSWORD is required.
 .github/workflows/ci.yml  Lint, type-check and tests for both packages on every PR
 disasterIND.csv        EM-DAT India disaster records (783 rows), reference data for scenarios
@@ -78,7 +78,7 @@ npm only. `web/` and `api/` are separate packages with their own `package-lock.j
 | `web/` | `npm run dev` | SPA on `http://localhost:5173`, proxying `/api` to port 3000 |
 | `web/` | `npm run format` / `npm run format:check` | Prettier |
 | `api/` | `npm run format` / `npm run format:check` | Prettier |
-| repo root | `cp .env.example .env` then `docker compose up --build` | Whole stack on `https://localhost` (self-signed locally) |
+| repo root | `cp .env.example .env` then `docker compose up --build` | Whole stack on `http://localhost:3000` - the same image Render deploys |
 | repo root | `docker compose down` | Stop it. Add `-v` to also drop the database volume. |
 
 `api/npm run db:generate` and `api/npm run db:migrate` wrap drizzle-kit. They do nothing useful until the Phase 2 schema exists.
@@ -88,8 +88,8 @@ npm only. `web/` and `api/` are separate packages with their own `package-lock.j
 | Where | Command | Output |
 |---|---|---|
 | `api/` | `npm run build` | Compiled JS in `api/dist/`; `npm start` runs it |
-| `web/` | `npm run build` | Static SPA in `web/dist/`, served by Caddy in the proxy image |
-| repo root | `docker compose build` | Both images |
+| `web/` | `npm run build` | Static SPA in `web/dist/`; the image copies it to `./public`, which Express serves |
+| repo root | `docker compose build` | The deployed image: SPA + API in one |
 
 ## Testing Commands
 

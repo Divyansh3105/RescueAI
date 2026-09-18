@@ -1,6 +1,6 @@
 # Architecture
 
-> **State (2026-09-18): the shape exists, the behavior does not.** The three deployable pieces below are real and run: the SPA, the Express API and PostgreSQL, behind Caddy under Docker Compose, verified serving `/api/health` over HTTPS on 2026-09-18. Everything that makes RescueAI *work* is still **planned**: no database tables, no routes beyond health, no scoring, no auth. Sections about the data model, API areas, data flow and security describe what will be built in Phases 2-5 (`PLAN.md`).
+> **State (2026-09-18): the shape exists, the behavior does not.** The deployable pieces below are real and run: one image holding the Express API with the built SPA inside it, plus PostgreSQL. Verified on 2026-09-18 serving the SPA, `/api/health` and the SPA fallback route from a single origin. Everything that makes RescueAI *work* is still **planned**: no database tables, no routes beyond health, no scoring, no auth. Sections about the data model, API areas, data flow and security describe what will be built in Phases 2-5 (`PLAN.md`).
 >
 > Each decision is labeled:
 > - **Decided:** explicitly chosen by the product owner.
@@ -18,7 +18,7 @@ RescueAI MVP is a **single web application** with three parts:
 - one Node.js/Express API in TypeScript
 - one PostgreSQL database
 
-Everything runs on one VM under Docker Compose, behind an HTTPS reverse proxy.
+The API and the built SPA ship as one container on a managed host, with PostgreSQL alongside it. HTTPS is terminated by the host.
 
 The API does most of the work:
 - it computes request priority (PRD Eq. 4.2) and responder ranking (Eq. 4.1) with deterministic formulas, not ML
@@ -39,17 +39,15 @@ flowchart LR
     K[Commander / Admin<br/>desktop]
   end
 
-  subgraph VM["Single VM — Docker Compose"]
-    P["Reverse proxy<br/>(TLS, serves SPA build)"]
-    A["API — Node.js + Express (TS)<br/>routes → services → db"]
-    D[("PostgreSQL")]
+  subgraph Host["Render — one container"]
+    A["API — Node.js + Express (TS)<br/>routes → services → db<br/>also serves the built SPA"]
   end
+  D[("Neon — PostgreSQL")]
 
   OSM["OpenStreetMap<br/>tile server"]
 
-  C & V & K -->|"HTTPS: SPA + /api (poll ~5 s)"| P
-  P -->|/api| A
-  A --> D
+  C & V & K -->|"HTTPS: SPA + /api (poll ~5 s)"| A
+  A -->|TLS| D
   V & K -->|map tiles| OSM
 ```
 
@@ -75,8 +73,8 @@ Future components (not part of the MVP; see PRD "Future Features") would sit beh
 | DB access / migrations | Drizzle ORM + drizzle-kit | Decided |
 | Auth | Server-side sessions in PostgreSQL, httpOnly cookie, bcrypt password hashing | Decided |
 | Live updates | Client polling every ~5 s | Decided |
-| Reverse proxy / TLS | Caddy (automatic HTTPS) | Decided |
-| Deployment | One VM, Docker Compose | Decided |
+| TLS and routing | Terminated by the host (Render). The API serves the SPA from the same origin. | Decided (D-044) |
+| Deployment | Render free web service (Docker), Neon free PostgreSQL. Docker Compose is the local stack. | Decided (D-044) |
 | Package manager / tests / lint | npm, Vitest, ESLint + Prettier | Decided |
 
 ## Repository Structure
@@ -95,9 +93,9 @@ api/                 Express API (TypeScript)
   src/services/      Business rules: requests, volunteers, teams, recommendations, decisions, assignments, audit, admin (empty)
   src/scoring/       Pure functions for Eq. 4.1 and 4.2 and the severity rule, no I/O (empty)
   src/db/            Drizzle client and schema; migrations output to api/drizzle/
-docker-compose.yml   proxy + api + db
-Dockerfile.proxy     Builds the SPA, serves it from Caddy with /api reverse-proxied
-Caddyfile            TLS and routing; SITE_ADDRESS selects the domain
+docker-compose.yml   app + db, building the same Dockerfile Render deploys
+Dockerfile           Builds the SPA and the API into one image (the deployed unit)
+render.yaml          Render service definition; DATABASE_URL is set in the dashboard
 .github/workflows/   CI: lint, type-check, tests on every pull request
 ```
 
@@ -157,7 +155,7 @@ erDiagram
 
 ## API Architecture
 
-The API is JSON over HTTPS under `/api`. Caddy serves it from the same origin as the SPA, so no CORS is needed.
+The API is JSON over HTTPS under `/api`. It serves the SPA itself, from the same origin, so no CORS is needed and the session cookie stays `SameSite=Lax`.
 
 Resource areas and who may call them (planned; the exact routes will be defined in code):
 
@@ -271,7 +269,8 @@ The target is prototype scale: a few commanders, hundreds to low thousands of sy
   - Upgrade path: switch to Server-Sent Events if polling load or latency becomes a problem.
 - **Ranking:** each request scans all eligible responders in memory, so it grows linearly with the number of responders. That's fine at this scale.
   - Upgrade path: pre-filter with a bounding box in SQL, then PostGIS with a spatial index.
-- **Single VM:** there is no redundancy. That is acceptable for a demo and is not production-grade (see PRD Non-Goals: no field deployment).
+- **Single container, free tier:** there is no redundancy, and the service sleeps after ~15 minutes idle. That is acceptable for a demo and is not production-grade (see PRD Non-Goals: no field deployment).
+  - Upgrade path: a paid Render instance removes the sleep; nothing about the image changes.
 - Horizontal scaling is **not a goal**. Server-side sessions in PostgreSQL would not block adding more API instances later.
 
 ## Security Architecture
@@ -293,19 +292,21 @@ The rules are defined in `AGENTS.md` → Security Requirements. This section cov
 
 ## Deployment Architecture
 
-Decided: one VM (about 2 vCPU, 4 GB RAM, 40 GB disk, per the PRD) running Docker Compose.
+Decided (D-044): a **Render** free web service running one Docker image, with **Neon** free PostgreSQL. Free tiers, because the project must stay reachable until the Phase-II Examination in May 2027 and has no hosting budget.
 
 ```mermaid
 flowchart LR
-  I((Internet)) -->|443| PX["proxy container<br/>TLS + static SPA build"]
-  PX -->|/api| API["api container<br/>Node.js"]
-  API --> PG[("db container<br/>PostgreSQL<br/>persistent volume")]
+  I((Internet)) -->|443, TLS by Render| APP["Render web service<br/>one image: Express API<br/>+ built SPA in ./public"]
+  APP -->|TLS| PG[("Neon<br/>PostgreSQL")]
 ```
 
-- Only the proxy is exposed publicly (ports 80 and 443). The API and database are reachable only on the Compose network.
-- The SPA is built into static files that the proxy serves. The API container runs the compiled TypeScript.
-- CI: GitHub Actions runs lint, type-check and the test suite on every pull request (D-039), defined in `.github/workflows/ci.yml`. It has not run on GitHub yet: there is no remote. Deployment stays manual.
-- Not established: the backup strategy for the database volume, and the domain name.
+- **One image, one origin.** `Dockerfile` builds `web/` and `api/` and copies the SPA build to `./public`. Express serves those static files and falls back to `index.html` for any non-`/api` GET. Nothing is cross-origin, so no CORS and no `SameSite=None` cookie — which matters, because mobile Safari blocks third-party cookies and would break login on a phone.
+- **Render terminates TLS** and gives the service an HTTPS subdomain. A custom domain is still Not established.
+- **Neon, not Render PostgreSQL.** Render's free database is deleted after 30 days; Neon's free tier persists. It sits outside the VM boundary the earlier design assumed, so `DATABASE_URL` uses TLS.
+- **The free service sleeps after ~15 minutes idle**, with a cold start of roughly 50 seconds. This is a measurement hazard, not just a demo annoyance: the SM1 timing runs in Phase 6 must warm the service first, or the median will include a cold start.
+- **`docker-compose.yml` builds the same `Dockerfile`**, so local and deployed behavior match. It serves `http://localhost:3000`, which browsers treat as a secure context, so geolocation and PWA install work locally without TLS. Real-phone checks (AC21, AC24) use the deployed HTTPS URL.
+- CI: GitHub Actions runs lint, type-check and the test suite on every pull request (D-039), defined in `.github/workflows/ci.yml`. Deployment is Render's automatic build on push to `main`.
+- Not established: the database backup strategy (Neon has its own retention; a scheduled `pg_dump` is still recommended) and the domain name.
 
 ## Architecture Decisions
 
@@ -318,13 +319,13 @@ This table is a quick index. The full records (context, options, trade-offs, wha
 | AD3 | Node.js + Express, TypeScript | Decided | One language for a 3-person team; matches the synopsis |
 | AD4 | PostgreSQL, no PostGIS in MVP | Decided | Relational data plus an enforceable audit log; straight-line distance needs no GIS |
 | AD5 | Polling every ~5 s for live updates | Decided | Meets AC2 (10 s) with no extra infrastructure |
-| AD6 | One VM with Docker Compose | Decided | Matches the PRD hosting constraint |
+| AD6 | Render free web service + Neon free PostgreSQL; one image serving the API and the SPA from one origin | Decided (D-044, supersedes the one-VM plan) | No hosting budget; same-origin keeps the session cookie working on phones |
 | AD7 | Formula-based scoring, no ML in MVP | Decided | PRD; ML is a Future feature |
 | AD8 | Scoring as pure functions; a single decision service creates offers and deployments | Decided | Testable ACs; one enforcement point for AC11 |
 | AD9 | Server-side sessions + httpOnly cookie | Decided | Immediate revocation; no tokens in JS (synopsis listed JWT) |
 | AD10 | DB-level append-only audit + same-transaction writes | Decided | Guarantees AC11/AC17 even if the app has a bug |
 | AD11 | Future ML/RAG as a separate Python service | Proposed | Keeps the MVP single-language |
-| AD12 | Vite, Leaflet, zod, Caddy; `web/` + `api/` layout | Decided | Standard, minimal choices for the decided stack |
+| AD12 | Vite, Leaflet, zod; `web/` + `api/` layout | Decided | Standard, minimal choices for the decided stack (Caddy dropped by D-044) |
 | AD13 | Drizzle ORM + drizzle-kit, TanStack Query, npm, Vitest, ESLint + Prettier | Decided | Typed DB access with editable SQL migrations; polling built into TanStack Query; one tool per job (see `RULES.md`) |
 | AD14 | Two-level approval: on-site selection, then office approval; assignments created only on approval (D-030) | Decided | Owner requirement matching the field-and-office chain of command |
 | AD15 | Citizen and volunteer screens translated with plain `en`/`hi` dictionaries, no i18n library (D-033, D-040) | Decided | Two languages don't need a library; avoids a new dependency |
@@ -332,7 +333,7 @@ This table is a quick index. The full records (context, options, trade-offs, wha
 ## Constraints
 
 - **Timeline:** a deployed prototype plus evaluation by January 2027, and a demo site kept running until the Phase-II Examination in May 2027. Built by a team of 3 (see PRD and `PLAN.md`).
-- **Hosting:** the whole stack must fit the ~2 vCPU / 4 GB VM.
+- **Hosting:** free tiers only (Render + Neon), and the app must fit a free Render instance. The PRD's ~2 vCPU / 4 GB figure came from the synopsis and is now an upper bound, not a target.
 - **HTTPS is mandatory:** geolocation and PWA installation only work in a secure context.
 - **Scope:** only PRD features F1–F14. No component in this file may be built for a Future feature without a PRD update.
 - **External usage:** OSM tile usage must stay within the public tile server's policy.

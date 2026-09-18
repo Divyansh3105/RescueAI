@@ -1,0 +1,18 @@
+# Render deployment (D-044). One free web service builds the root Dockerfile,
+# so the SPA and the API share one origin. The database is Neon, not Render:
+# Render's free PostgreSQL is deleted after 30 days and this has to run until
+# the Phase-II examination in May 2027.
+#
+# DATABASE_URL is set by hand in the Render dashboard from the Neon connection
+# string. It is a secret, so it is never committed (RULES.md -> Security Rules).
+services:
+  - type: web
+    name: rescueai
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    region: singapore
+    healthCheckPath: /api/health
+    envVars:
+      - key: DATABASE_URL
+        sync: false

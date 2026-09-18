@@ -991,3 +991,37 @@ A workspace root would let one `npm ci` install both packages. Two `npm ci` call
 `AGENTS.md` (project state, repository structure, all three command sections), `TESTING.md` (state, commands, CI) and `ARCHITECTURE.md` (state, repository structure, CI note) updated in the same change.
 ### Alternatives Rejected
 Keeping oxlint; accepting a shadcn preset and its web font; an npm workspace root; a separate static-file container.
+
+## D-044 Deploy on Render free tier with Neon PostgreSQL, one origin
+
+### Date
+2026-09-18
+### Status
+Accepted. Supersedes AD6 ("one VM with Docker Compose") as the deployment target. Docker Compose remains, as the local development stack.
+### Context
+D-011/AD6 assumed a rented VM, which the PRD sized at about 2 vCPU and 4 GB. There is no hosting budget, and the deployed demo has to stay reachable from Phase 2 (the Phase-I Examination, Oct 26 - Nov 3 2026) until the Phase-II Examination in May 2027 - roughly nineteen months. The owner asked for free hosting, naming Render, Netlify and Vercel.
+### Options Considered
+1. Vercel or Netlify for the SPA, Render for the API, a managed free PostgreSQL.
+2. Vercel serverless functions for the whole backend.
+3. One Render web service serving both the SPA and the API, with Neon PostgreSQL.
+4. Keep the rented VM.
+### Decision
+Option 3.
+- **One Render free web service**, `runtime: docker`, building the repository's root `Dockerfile`. That image builds `web/` and `api/` and copies the SPA build into `./public`; Express serves those files and falls back to `index.html` for any non-`/api` GET.
+- **Neon free PostgreSQL**, not Render's. `DATABASE_URL` is set by hand in the Render dashboard and never committed.
+- **Caddy, `Caddyfile`, `Dockerfile.proxy` and `api/Dockerfile` are deleted.** Render terminates TLS, and `docker-compose.yml` now builds the same root `Dockerfile`, so there is one build path instead of two that can drift.
+### Reasoning
+**Splitting the frontend and backend across two hosts breaks login on phones.** Different origins make the session cookie cross-site, which requires `SameSite=None`, and mobile Safari blocks third-party cookies by default. AC21 and AC24 can only be verified on a real handset, so that failure would surface late and look like a mystery. Serving both from one origin keeps `SameSite=Lax` and keeps the "no CORS needed" property ARCHITECTURE.md already assumed.
+
+Option 2 was rejected because server-side sessions in PostgreSQL and a pooled database connection are a poor fit for serverless functions; it would mean rewriting the auth design in D-009/AD9 for no gain. Option 4 costs money the project does not have.
+
+Neon rather than Render PostgreSQL because **Render deletes a free database after 30 days**, which over nineteen months means repeatedly recreating and reseeding it, including during the evaluation runs.
+### Trade-offs
+- **The free service sleeps after about 15 minutes idle, and a cold start takes roughly 50 seconds.** This is a measurement hazard, not only a demo annoyance: the SM1 timing comparison in Phase 6 must warm the service before each run, or the median time-to-approval silently includes a cold start. This belongs in the evaluation protocol.
+- The database is now a network hop away over TLS rather than a container on the same Docker network. At prototype scale this is not a latency concern, but it is no longer inside a single trust boundary.
+- Local development loses HTTPS. `http://localhost:3000` is a secure context in every browser, so geolocation and PWA install still work locally; testing on a real phone goes through the deployed HTTPS URL.
+- A Render free instance is smaller than the PRD's 2 vCPU / 4 GB figure. That figure came from the synopsis and was never a measured requirement.
+### Consequences
+`ARCHITECTURE.md` updated: system overview, system diagram, tech stack, repository structure, API architecture, scalability, deployment and the AD6 and AD12 rows. `README.md` and `AGENTS.md` updated. The domain name and the database backup strategy are still Not established. Deployment becomes Render's automatic build on push to `main`, replacing the manual VM deploy.
+### Alternatives Rejected
+Vercel or Netlify for the SPA with a separate API host (cross-site cookie); Vercel serverless functions (incompatible with the decided session design); Render's own free PostgreSQL (deleted after 30 days); keeping the paid VM.

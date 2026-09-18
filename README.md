@@ -12,7 +12,7 @@ B.Tech major project **CSE27-364**, Graphic Era Hill University, Dehradun. The p
 demonstrated on flood and landslide scenarios in Uttarakhand.
 
 > **Status: scaffolded, no features.** The packages build, lint, type-check and deploy, and
-> `/api/health` answers over HTTPS. No PRD feature (F1–F14) is implemented yet — there is no
+> `/api/health` answers. No PRD feature (F1–F14) is implemented yet — there is no
 > database schema, no auth and no scoring. See [`MEMORY.md`](MEMORY.md) for exactly where things
 > stand and [`PLAN.md`](PLAN.md) for what lands when.
 
@@ -37,7 +37,7 @@ citizen submits request
 | Database | PostgreSQL via Drizzle ORM (no PostGIS; distance is haversine) |
 | Auth | Server-side sessions in PostgreSQL, httpOnly cookie, bcrypt |
 | Live updates | Client polling every ~5 s |
-| Deployment | Docker Compose behind Caddy |
+| Deployment | One Docker image (API + built SPA, same origin) on Render, with Neon PostgreSQL |
 
 Ranking is deterministic formulas, not ML — that is what makes every recommendation explainable.
 
@@ -49,8 +49,9 @@ Ranking is deterministic formulas, not ML — that is what makes every recommend
 cp .env.example .env && docker compose up --build
 ```
 
-Serves `https://localhost` with a self-signed certificate. `docker compose down -v` stops it and
-drops the database volume.
+Serves `http://localhost:3000`, building the same image Render deploys. Browsers treat `localhost`
+as a secure context, so geolocation and PWA install work without TLS. `docker compose down -v`
+stops it and drops the database volume.
 
 **Just the API:**
 
@@ -81,8 +82,9 @@ api/
   src/services/           business rules and transactions
   src/scoring/            pure ranking functions — no I/O, no clock, no randomness
   src/db/                 Drizzle schema, queries, migrations
-docker-compose.yml        db + api + proxy
-Caddyfile                 TLS and routing
+Dockerfile                builds web/ and api/ into the one deployed image
+docker-compose.yml        db + app, building that same image
+render.yaml               Render service definition
 .github/workflows/ci.yml  lint, type-check and tests on every pull request
 disasterIND.csv           EM-DAT India disaster records, reference data for scenarios
 ```
