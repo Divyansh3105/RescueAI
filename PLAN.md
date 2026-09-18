@@ -60,17 +60,17 @@ A phase ends only when its exit criteria hold and the Required Checks in `TESTIN
 4. Whether any shared commander action belongs to only one commander type, and whether the office commander can edit a selection (PRD open items 4 and 5).
 5. The evaluation method for the paper: who builds the ground truth, how the manual baseline runs, and who the SUS evaluators are.
 
-6. Which VM to use, and the domain name.
+6. ~~Which VM to use~~ - **done 2026-09-18 (D-044):** Render free tier + Neon PostgreSQL, live at <https://rescueai-70mu.onrender.com>. A custom domain is now optional; the Render subdomain is HTTPS and works for every remaining milestone.
 
 Already decided: on 2026-09-15 (D-026 to D-034) band cutoffs and the Wait cap (both provisional), 25 km proximity, the Freshness term, weights summing to 1, reliability rules, top-10 shortlist, two-level approval, personal data only for commanders, in-app location request and English + Hindi; on 2026-09-18 (D-035 to D-040) the API error shape, the rate limit, the reference ID format, login and session rules, all testing gaps, CI on GitHub Actions and the Hindi dictionary approach.
 
-**Build:**
-- `git init`, commit the docs, create the shared remote.
-- Scaffold `web/` (Vite + React + Tailwind + shadcn/ui) and `api/` (Express + strict TypeScript).
-- `docker-compose.yml` with proxy, api and db, and Drizzle connected to PostgreSQL.
-- ESLint, Prettier and Vitest set up in both packages, each with one trivial passing test.
-- A GitHub Actions workflow running lint, type-check and tests on every pull request.
-- Skeleton deploy: Caddy on the VM serving the empty SPA and `/api/health` over HTTPS.
+**Build - all done 2026-09-18:**
+- ~~`git init`, commit the docs, create the shared remote.~~ <https://github.com/Divyansh3105/RescueAI>
+- ~~Scaffold `web/` and `api/`.~~
+- ~~`docker-compose.yml`, and Drizzle connected to PostgreSQL.~~ One image (API + built SPA), db alongside it.
+- ~~ESLint, Prettier and Vitest in both packages, each with a trivial passing test.~~ Two tests each.
+- ~~A GitHub Actions workflow running lint, type-check and tests on every pull request.~~ Green.
+- ~~Skeleton deploy serving the empty SPA and `/api/health` over HTTPS.~~ Render, not a VM (D-044).
 
 **Write:** Progress Report 1, drawn from `PRD.md`, `ARCHITECTURE.md`, `DESIGN.md` and this plan.
 
@@ -78,9 +78,9 @@ Already decided: on 2026-09-15 (D-026 to D-034) band cutoffs and the Wait cap (b
 - Decisions 1–4 are answered and recorded in `PRD.md` / `DECISIONS.md`.
 - **The December university exam dates are confirmed.** If they overlap Phase 4, move the feature freeze to Jan 17 and pull Phase 4 work forward into Phase 3.
 - **Severity table fallback:** if the real table isn't decided by Sep 25, a provisional table goes into `PRD.md` marked `[Provisional]`, so Phase 2 and Paper Part 2 aren't blocked.
-- Lint, type-check and tests pass locally in `web/` and `api/`.
-- The empty app loads over HTTPS on the VM, and a phone can grant it location permission.
-- The "Not established" command sections in `AGENTS.md` and `TESTING.md` list commands that have actually been run.
+- ~~Lint, type-check and tests pass locally in `web/` and `api/`.~~ Done, and in CI.
+- The empty app loads over HTTPS (**done** - <https://rescueai-70mu.onrender.com>), **and a phone can grant it location permission (still to check)**.
+- ~~The "Not established" command sections in `AGENTS.md` and `TESTING.md` list commands that have actually been run.~~ Done.
 - Progress Report 1 submitted by Oct 7.
 
 ---

@@ -14,14 +14,14 @@ RescueAI is a web-based decision support system for the response phase of a disa
 
 ## Architecture Overview
 
-The architecture is **planned, not built**. Full details, diagrams and decision status are in **`ARCHITECTURE.md`**. Read it before any structural change.
+The architecture is **partly built**: the three deployable pieces run and are live, but no feature behind them exists. Full details, diagrams and decision status are in **`ARCHITECTURE.md`**. Read it before any structural change.
 
 In short:
 - A React SPA (Vite, Tailwind, shadcn/ui, TanStack Query, Leaflet), installable as a PWA.
 - A Node.js + Express API in strict TypeScript, with zod validation and Drizzle ORM on PostgreSQL (no PostGIS).
 - Server-side session cookies for login.
 - Live updates by polling every ~5 s.
-- Deployed on one VM with Docker Compose behind Caddy.
+- Deployed as one Docker image (API serving the built SPA from the same origin) on Render, with Neon PostgreSQL (D-044). Docker Compose is the local stack.
 - MVP ranking uses the PRD formulas with straight-line distance and no ML.
 
 Anything still marked **Proposed** in `ARCHITECTURE.md` (currently only AD11, the future Python ML service) needs the user's confirmation before you rely on it.
