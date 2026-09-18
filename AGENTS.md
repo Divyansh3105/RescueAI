@@ -30,6 +30,8 @@ Anything still marked **Proposed** in `ARCHITECTURE.md` (currently only AD11, th
 
 Existing:
 ```
+README.md        Public overview: what it is, how to run it, where the docs are
+LICENSE          MIT
 PRD.md           Product requirements (source of truth for scope and acceptance criteria)
 DESIGN.md        Design system (read before any UI work)
 ARCHITECTURE.md  Architecture, stack, boundaries and decisions
