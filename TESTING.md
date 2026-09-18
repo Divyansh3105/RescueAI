@@ -147,7 +147,7 @@ The commands for 1–3 are in the Test Stack table above. Run each in both `web/
 - **api:** `npm ci`, `npm run lint`, `npm run typecheck`, `npm test`, with a `postgres:17-alpine` service container on port 5432 and `DATABASE_URL` set. Nothing uses the database yet; the service is there for the Phase 2 integration tests.
 - **web:** `npm ci`, `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`.
 
-The workflow has not run on GitHub yet, because there is no remote. Until there is, the checks run locally and the PR reviewer (RULES.md → Git Rules) confirms they passed.
+First green run on GitHub: 2026-09-18, both jobs passing on the initial push to `main`. Repository: <https://github.com/Divyansh3105/RescueAI>.
 
 ## Definition of Done
 

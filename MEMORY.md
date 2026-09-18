@@ -4,7 +4,7 @@ _Last updated: 2026-09-18 (session 4). Update this after every meaningful sessio
 
 ## Current Status
 
-- **Scaffolded, no features.** It is a git repository now (`main`, two commits, **no remote**). `web/` and `api/` exist, build, lint, type-check and each pass one trivial test. `docker compose up` builds one image holding the API with the SPA inside it and serves both from `http://localhost:3000` - verified on 2026-09-18: health returned `{"status":"ok","db":"up"}`, the SPA rendered it in a browser, a deep route fell back to `index.html`, and an unknown `/api/*` route returned the D-035 error shape.
+- **Scaffolded, no features.** It is a git repository now, pushed to <https://github.com/Divyansh3105/RescueAI> on `main`, with CI green. `web/` and `api/` exist, build, lint, type-check and each pass one trivial test. `docker compose up` builds one image holding the API with the SPA inside it and serves both from `http://localhost:3000` - verified on 2026-09-18: health returned `{"status":"ok","db":"up"}`, the SPA rendered it in a browser, a deep route fell back to `index.html`, and an unknown `/api/*` route returned the D-035 error shape.
 - **No PRD feature is implemented.** No database table, no Drizzle schema, no migration, no auth, no scoring, no route beyond `/api/health`. All of that is Phase 2.
 - The documentation set: `PRD.md`, `AGENTS.md` (the entry point), `DESIGN.md`, `ARCHITECTURE.md`, `RULES.md`, `DECISIONS.md`, `TESTING.md`, `PLAN.md`, `MEMORY.md`, and `CLAUDE.md` (which just imports AGENTS.md).
 - The stack, tooling and coding rules are decided. The PRD is **Draft v2** and still **not formally approved**.
@@ -38,7 +38,7 @@ Session 4, 2026-09-18 (Phase 1 build):
 - One root `Dockerfile` (SPA + API), `docker-compose.yml` (db + app) building that same image, `render.yaml`, `.env.example`.
 - **D-044: hosting moved to Render free tier + Neon PostgreSQL**, replacing the rented VM (AD6). One origin, so the session cookie stays `SameSite=Lax` and login works on phones. Caddy, `Caddyfile`, `Dockerfile.proxy` and `api/Dockerfile` deleted.
 - `README.md` and MIT `LICENSE` added. Remote set to `https://github.com/Divyansh3105/RescueAI.git`.
-- `.github/workflows/ci.yml`: two jobs (api with a Postgres service container, web), lint + type-check + test on every PR.
+- `.github/workflows/ci.yml`: two jobs (api with a Postgres service container, web), lint + type-check + test on every PR. **Pushed to <https://github.com/Divyansh3105/RescueAI>; both jobs passed on GitHub.**
 - D-043 records the scaffold choices. `AGENTS.md`, `TESTING.md` and `ARCHITECTURE.md` updated with commands that were actually run.
 
 ## Currently In Progress

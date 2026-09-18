@@ -305,7 +305,7 @@ flowchart LR
 - **Neon, not Render PostgreSQL.** Render's free database is deleted after 30 days; Neon's free tier persists. It sits outside the VM boundary the earlier design assumed, so `DATABASE_URL` uses TLS.
 - **The free service sleeps after ~15 minutes idle**, with a cold start of roughly 50 seconds. This is a measurement hazard, not just a demo annoyance: the SM1 timing runs in Phase 6 must warm the service first, or the median will include a cold start.
 - **`docker-compose.yml` builds the same `Dockerfile`**, so local and deployed behavior match. It serves `http://localhost:3000`, which browsers treat as a secure context, so geolocation and PWA install work locally without TLS. Real-phone checks (AC21, AC24) use the deployed HTTPS URL.
-- CI: GitHub Actions runs lint, type-check and the test suite on every pull request (D-039), defined in `.github/workflows/ci.yml`. Deployment is Render's automatic build on push to `main`.
+- CI: GitHub Actions runs lint, type-check and the test suite on every pull request (D-039), defined in `.github/workflows/ci.yml`. First green run 2026-09-18. Deployment is Render's automatic build on push to `main`.
 - Not established: the database backup strategy (Neon has its own retention; a scheduled `pg_dump` is still recommended) and the domain name.
 
 ## Architecture Decisions
