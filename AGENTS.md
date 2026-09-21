@@ -40,6 +40,9 @@ MEMORY.md        Current project state and session handoff (read at session star
 DECISIONS.md     Decision log (append-only; supersede, never rewrite)
 TESTING.md       Testing strategy, required tests, Definition of Done
 PLAN.md          Seven-phase delivery plan: dates, scope and exit criteria per phase (Proposed)
+MENTOR-REVIEW.md Open formula questions for the mentor (PRD items 2, 3, 6), with the team's
+                 recommendations. Needed back by Oct 15 for Paper Part 2. Delete or archive
+                 once the answers land in PRD.md and DECISIONS.md.
 AGENTS.md        This file
 CLAUDE.md        Points to this file
 ```
