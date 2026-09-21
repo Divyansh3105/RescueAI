@@ -13,7 +13,7 @@ _Last updated: 2026-09-18 (session 4). Update this after every meaningful sessio
 
 Session 2, 2026-09-15:
 - `PLAN.md`: a seven-phase plan aligned to the department timeline (feature freeze Jan 10, 2027; results by January 2027; Phase-II Exam May 2027).
-- The owner answered most of the open decisions, recorded as D-026 to D-034. This produced PRD Draft v2 with 24 acceptance criteria. The main changes:
+- The owner answered most of the open decisions, recorded as D-026 to D-034. This produced PRD Draft v2 with 24 acceptance criteria (AC25 was added later, on 2026-09-22 by D-051). The main changes:
   - **Two-level approval:** an on-site commander selects and an office commander approves. There are now two commander roles.
   - Citizen phone numbers and volunteer locations are visible **only to commanders**. Volunteers, including the assigned one, and the Admin never see them.
   - The Availability term is replaced by location **Freshness**.
