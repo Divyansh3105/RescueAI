@@ -76,7 +76,7 @@ Already decided: on 2026-09-15 (D-026 to D-034) band cutoffs and the Wait cap (b
 
 **Exit criteria:**
 - Decisions 1–4 are answered and recorded in `PRD.md` / `DECISIONS.md`.
-- **The December university exam dates are confirmed.** If they overlap Phase 4, move the feature freeze to Jan 17 and pull Phase 4 work forward into Phase 3.
+- **The December university exam dates are confirmed.** **Partly answered 2026-09-22: there ARE exams in December, but the dates are not decided yet.** Phase 4 runs Nov 30 - Dec 27, so an overlap is close to certain. Treat December as reduced capacity and decide the mitigation now rather than waiting for dates that may not be published until November.
 - ~~**Severity table fallback:** if the real table isn't decided by Sep 25, a provisional table goes into `PRD.md` marked `[Provisional]`.~~ **Taken 2026-09-18, ahead of the date (D-047).**
 - ~~Lint, type-check and tests pass locally in `web/` and `api/`.~~ Done, and in CI.
 - The empty app loads over HTTPS (**done** - <https://rescueai-70mu.onrender.com>), **and a phone can grant it location permission (still to check)**.
@@ -256,7 +256,7 @@ Already decided: on 2026-09-15 (D-026 to D-034) band cutoffs and the Wait cap (b
 |---|---|---|
 | Formula decisions not made by about Oct 15 | Paper Part 2 (Oct 20) can't describe the method | Adopt documented provisional values in Phase 1; scoring is isolated, so values can change later. **Severity table done (D-047); open items 2, 3 and 6 remain.** |
 | Phase-I Exam demo not ready | Weak Phase-I evaluation | Keep the exam slice thin (form → severity → queue) and deploy it before Oct 24 |
-| University end-semester exams in December | Phase 4 loses time | Confirm the exam dates now; if they fall in December, start Phase 4 work early in Phase 3 and move the freeze no later than Jan 17 |
+| University end-semester exams in December | Phase 4 loses time | **Live risk, not resolved.** Confirmed 2026-09-22 that December exams exist; dates undecided. Phase 4 (Nov 30 - Dec 27) almost certainly overlaps. Mitigation: treat December as reduced capacity, pull the F9 two-level decision service forward into Phase 3, and move the freeze no later than Jan 17. **Pending the owner's decision on the date shift.** |
 | Evaluation data takes longer than coding | No results for Paper Part 3 | Start scenarios and ground truth in Phase 4 (owner B) |
 | "January 2027" deadline is earlier than Jan 31 | Phase 6 squeezed | Get the exact date from the supervisor and shift the freeze to match |
 | Scopus review takes too long for April acceptance | Milestone 13 missed | Pick a conference with a quick decision cycle; shortlist venues in January |
