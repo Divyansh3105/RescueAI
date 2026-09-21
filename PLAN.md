@@ -30,13 +30,15 @@ Items 1–3 (team formation, supervisor allocation, synopsis presentation) are a
 |---|---|---|---|---|---|---|
 | 1 | Unblock, foundation, Progress Report 1 | Sep 15 – Oct 7 | 3 | — | — | Progress Report 1 |
 | 2 | Core backend, scoring, methodology | Oct 8 – Nov 3 | 4 | F13 (table), F5 rule, F6–F8 math, thin F1+F6 slice | AC3, AC5, AC8, AC9, AC17, AC18 (partial) | Paper Part 2, **Phase-I Exam** |
-| 3 | Intake, volunteers, teams and queue | Nov 4 – Nov 29 | 4 | F1–F6, F12 (queue), location request, English + Hindi | AC1, AC2, AC4, AC6, AC21, AC23, AC24 | — |
-| 4 | Recommendation and two-level decision loop | Nov 30 – Dec 27 | 4 | F7–F10, F13 | AC7, AC10, AC11–AC16, AC18 (complete), AC22 | — |
-| 5 | Map, admin tooling and deployment | Dec 28 – Jan 10 | 2 | F11, F12 (all screens), F14 | AC19, AC20 | **Feature freeze** |
-| 6 | Evaluation and Results | Jan 11 – Jan 31 | 3 | — | SM1–SM5 measured | Paper Part 3 |
+| 3 | Intake, volunteers, teams, queue **and the decision backbone** | Nov 4 – Nov 29 | 4 | F1–F6, F12 (queue), location request, English + Hindi, **F7 endpoint + F9 service (server-side)** | AC1, AC2, AC4, AC6, AC21, AC23, AC24, **AC11, AC22** | — |
+| 4 | Decision UI and closing the loop (**reduced capacity: exams**) | Nov 30 – Dec 27 | 4 | F8, F10, F13, Admin weights | AC7, AC10, AC12–AC16, AC18 (complete) | — |
+| 5 | Map, admin tooling and deployment | Dec 28 – Jan 17 | 3 | F11, F12 (all screens), F14 | AC19, AC20 | **Feature freeze** |
+| 6 | Evaluation and Results | Jan 18 – Jan 31 | 2 | — | SM1–SM5 measured | Paper Part 3 |
 | 7 | Paper, reviews, reports and Phase-II Exam | Feb 1 – May 2027 | ~17 | Bug fixes and review feedback only | — | **Phase-II Exam** |
 
-**Feature freeze: 10 January 2027.** After it, only bugs and review feedback get fixed.
+**Feature freeze: 17 January 2027** (moved from Jan 10 on 2026-09-22, D-048). After it, only bugs and review feedback get fixed.
+
+**December is a reduced-capacity month.** The team confirmed on 2026-09-22 that end-semester exams fall in December, though the dates are not published. Rather than wait for them, the plan assumes the overlap: the **risky server-side work moves into November** (Phase 3), and December keeps the UI work, which is far more interruptible. Phase 6 absorbs the cost and drops to two weeks, so **scenario data now starts in Phase 3**, not Phase 4.
 
 **Suggested ownership** (a proposal; change it freely):
 - **A — Backend:** schema, login, services, decision service, audit log.
@@ -125,11 +127,13 @@ Already decided: on 2026-09-15 (D-026 to D-034) band cutoffs and the Wait cap (b
 
 ---
 
-## Phase 3 — Intake, volunteers, teams and queue
+## Phase 3 — Intake, volunteers, teams, queue and the decision backbone
 
 **Dates:** Nov 4 – Nov 29
 
-**Goal:** Requests come in, volunteers and teams exist, and the commander sees a live prioritized queue (PRD UF1, UF2).
+**Goal:** Requests come in, volunteers and teams exist, the commander sees a live prioritized queue (PRD UF1, UF2), **and the server-side decision path is built and proven before December's exams**.
+
+**This phase now carries the project's hardest invariants** (D-048). AC11 and AC22 — no dispatch without a logged on-site selection and a logged office approval — are transactional, database-level guarantees. They cannot be built in hours snatched between exams, so they move here.
 
 **Build:**
 - **F1:** complete the request form: map pin or GPS, zod validation, optional fields, reference ID, per-IP rate limit of 30 requests per 10 minutes.
@@ -142,30 +146,39 @@ Already decided: on 2026-09-15 (D-026 to D-034) band cutoffs and the Wait cap (b
 - **Location request (F2):** a commander asks all volunteers to share their location; volunteers see a banner until they do.
 - **English and Hindi** on citizen and volunteer screens, with a language switch. A Hindi speaker on the team reviews every translation.
 
+**Pulled forward from Phase 4 (A) — server-side only, no UI:**
+- **F7 recommendation endpoint:** required skills default from the hazard and can be edited; returns the top 10 volunteers and top 10 teams and records `first_recommended_at`.
+- **F9 two-level decision service:** the only code path that dispatches. On-site select / modify / reject, office approve / send back. Assignments and their audit entry are created in the same transaction as the office approval.
+- Driven by integration tests, not a UI. The Phase 4 screens are then a view over services that are already proven.
+
+**Start now, not in Phase 4 (B):** scenario datasets and ground-truth assignments for Phase 6. Phase 6 is only two weeks and this data takes longer than the code. The requirements are listed under Phase 4.
+
 **Exit criteria:**
 - **AC1, AC2, AC4, AC6** verified (integration tests; AC2 also checked by hand).
 - **AC23** (location request banner) and **AC24** (English and Hindi) verified.
 - **AC21:** volunteer screens and location sharing work on a 375 px Android browser (checked by hand).
+- **AC11 and AC22** verified by integration test: no assignment exists without an approved selection carrying both audit entries; an office commander cannot approve without a selection awaiting approval; an on-site commander cannot approve at all; a send-back creates no assignment.
 - New screens checked against the `DESIGN.md` accessibility rules, including an axe DevTools or Lighthouse pass in both languages.
 
 ---
 
-## Phase 4 — Recommendation and decision loop
+## Phase 4 — Decision UI and closing the loop
 
-**Dates:** Nov 30 – Dec 27
+**Dates:** Nov 30 – Dec 27. **Reduced capacity: end-semester exams fall in this window (dates not yet published).**
 
-**Goal:** The whole core loop works end to end, and nothing can be dispatched without approval (PRD UF3, UF4, UF5). This is the largest build phase; Phase 2 carries more risk, because of its fixed external dates.
+**Goal:** The whole core loop works end to end for a user (PRD UF3, UF4, UF5). The services underneath were built and tested in Phase 3, so this phase is mostly UI over proven code — deliberately, because UI work survives interruption better than transactional server logic.
+
+**If exams squeeze this phase, cut in this order:** F13 audit log view first, then the Admin weights editor (weights can be changed by a direct database update until it exists), then F12 polling on secondary screens. **Never cut F8** — an explanation for every recommendation is the project's whole thesis (AC9, SM5).
 
 **Build:**
-- **F7:** recommendation endpoint. Required skills default from the hazard and can be edited; it returns the top 10 volunteers and top 10 teams and records `first_recommended_at`.
 - **F8:** recommendation panel showing contribution bars and a reason for every responder.
 - Admin weights editor.
-- **F9:** the two-level decision service, the only code path that dispatches. On-site commanders select, modify or reject; office commanders approve or send back on the Approvals screen. Assignments are created, with their audit entry, in the same transaction as the office approval.
+- **F9 UI:** the on-site select / modify / reject screen, and the office commander's "Awaiting approval" queue filter with a read-only recommendation panel (D-042). The service itself already exists from Phase 3.
 - **F10:** volunteer offer screen (accept, decline, complete). The commander can withdraw an offer, mark a team's deployment complete, and set Resolved or Cancelled. Request status changes and reliability counters.
 - Personal data: citizen phone numbers and volunteer locations appear only in commander responses.
 - **F12:** refreshing on offers and request detail. **F13:** read-only audit log view.
 
-**Start in parallel (B):** scenario datasets and ground-truth assignments for Phase 6. They take longer than the code, and they have to exercise the whole formula:
+**Continue (B):** scenario datasets and ground-truth assignments for Phase 6, started back in Phase 3. They take longer than the code, and they have to exercise the whole formula:
 - **Backdated submission times**, or every request has the same Wait and the queue is ordered by severity alone.
 - **Varied location ages**, or every volunteer has the same Freshness (all 1.0, or all 0).
 - **Varied service histories**, or every volunteer sits at the 0.5 Reliability default.
@@ -173,15 +186,15 @@ Already decided: on 2026-09-15 (D-026 to D-034) band cutoffs and the Wait cap (b
 - **Graded relevance in the ground truth** (for example ideal / acceptable / wrong), because NDCG needs grades, not a yes-or-no list.
 
 **Exit criteria (integration tests unless noted):**
-- **AC7, AC10, AC11, AC12, AC13, AC14, AC15, AC16, AC22** verified.
+- **AC7, AC10, AC12, AC13, AC14, AC15, AC16** verified. AC11 and AC22 were already closed in Phase 3.
 - **AC18 (complete):** every non-public route has a test for a role that isn't allowed.
-- First flood and landslide scenario drafts exist.
+- Flood and landslide scenarios complete, with graded ground truth — not just drafts.
 
 ---
 
 ## Phase 5 — Map, admin tooling and deployment
 
-**Dates:** Dec 28 – Jan 10 (ends with the feature freeze)
+**Dates:** Dec 28 – Jan 17 (ends with the feature freeze, moved from Jan 10 by D-048)
 
 **Goal:** Every MVP feature is built and running on the VM.
 
@@ -205,7 +218,7 @@ Already decided: on 2026-09-15 (D-026 to D-034) band cutoffs and the Wait cap (b
 
 ## Phase 6 — Evaluation and Results
 
-**Dates:** Jan 11 – Jan 31
+**Dates:** Jan 18 – Jan 31 (two weeks, not three — see D-048)
 
 **Goal:** Measured SM1–SM5 results written up as Paper Part 3.
 
@@ -258,7 +271,7 @@ Already decided: on 2026-09-15 (D-026 to D-034) band cutoffs and the Wait cap (b
 | Phase-I Exam demo not ready | Weak Phase-I evaluation | Keep the exam slice thin (form → severity → queue) and deploy it before Oct 24 |
 | University end-semester exams in December | Phase 4 loses time | **Live risk, not resolved.** Confirmed 2026-09-22 that December exams exist; dates undecided. Phase 4 (Nov 30 - Dec 27) almost certainly overlaps. Mitigation: treat December as reduced capacity, pull the F9 two-level decision service forward into Phase 3, and move the freeze no later than Jan 17. **Pending the owner's decision on the date shift.** |
 | Evaluation data takes longer than coding | No results for Paper Part 3 | Start scenarios and ground truth in Phase 4 (owner B) |
-| "January 2027" deadline is earlier than Jan 31 | Phase 6 squeezed | Get the exact date from the supervisor and shift the freeze to match |
+| "January 2027" deadline is earlier than Jan 31 | Phase 6 squeezed | **Now the sharpest risk in the plan.** Phase 6 is two weeks after D-048. Get the exact date from the supervisor; if it is earlier than Jan 31, the freeze moves back — Phase 6 cannot absorb another cut. Starting scenario data in Phase 3 is the main protection. |
 | Scopus review takes too long for April acceptance | Milestone 13 missed | Pick a conference with a quick decision cycle; shortlist venues in January |
 | VM or domain lapses before May | Demo fails at Phase-II Exam | Pay for hosting through May 2027; keep a local Docker Compose fallback |
 | ~~Paper Part 1 status unknown~~ | — | **Closed 2026-09-18: submitted.** |

@@ -1115,3 +1115,36 @@ The table is authored from reasoning, not from domain consultation or data. Pape
 PRD F5 now carries the table, marked `[Provisional]`. Open item 1 is closed; the entry is added to the Provisional list for Phase 6. Phase 2 can implement `api/src/scoring/` and the AC3 unit test against it. Open items 2, 3 and 6 (severity scaling, team score formula, Freshness window) are still open and still block Paper Part 2.
 ### Alternatives Rejected
 A 32-row lookup table (unreadable, easy to break monotonicity); a weighted continuous formula rounded to 1-5 (harder to explain and to test for AC3); deriving a table from `disasterIND.csv` (the data does not support it); waiting for domain consultation past the Sep 25 fallback date.
+
+## D-048 December exam overlap: move the risky work to November, freeze to Jan 17
+
+### Date
+2026-09-22
+### Status
+Accepted. Amends the `PLAN.md` phase boundaries set on 2026-09-15.
+### Context
+`PLAN.md` carried a risk row saying: confirm the December university exam dates, and if they overlap Phase 4, pull Phase 4 work forward and move the feature freeze no later than Jan 17. On 2026-09-22 the owner confirmed **there are exams in December, but the dates are not decided**. Phase 4 ran Nov 30 - Dec 27, so an overlap is close to certain. The dates may not be published until November, which is inside Phase 3.
+### Options Considered
+1. Wait for the dates before changing anything.
+2. Pull the risky work forward but keep the Jan 10 freeze.
+3. Pull the risky work forward **and** move the freeze to Jan 17.
+### Decision
+Option 3.
+- **F7 (recommendation endpoint) and F9 (the two-level decision service) move from Phase 4 into Phase 3**, server-side only, driven by integration tests with no UI. **AC11 and AC22 now close in Phase 3.**
+- **Phase 4 becomes the UI phase** and is marked reduced capacity. It gets a written cut order: F13 first, then the Admin weights editor, then F12 on secondary screens. **F8 is never cut.**
+- **Feature freeze moves Jan 10 to Jan 17.** Phase 5 becomes Dec 28 - Jan 17; Phase 6 becomes Jan 18 - Jan 31, two weeks instead of three.
+- **Scenario datasets and ground truth start in Phase 3**, not Phase 4.
+### Reasoning
+The split is by **interruptibility, not by size**. AC11 and AC22 are the project's hardest guarantees: no assignment may exist without an approved selection, and the assignment plus its audit entry must commit in one transaction. That is transactional database work needing sustained concentration and a full integration-test harness. It is exactly the work that goes wrong when done in hours snatched between exams, and it is the work whose failure invalidates the project's central claim. UI work over an already-tested service degrades gracefully: a half-finished panel is visibly half-finished, whereas a half-correct approval path looks fine and is not.
+
+Waiting for the dates was rejected because the information arrives too late to act on. Keeping the Jan 10 freeze was rejected because it leaves no slack if exams take more of December than expected, and a slipped freeze with no buffer runs straight into Paper Part 3.
+### Trade-offs
+**Phase 6 drops to two weeks**, and it has to produce SM1-SM5 and Paper Part 3. This is now the sharpest risk in the plan. It is mitigated by starting scenario data in Phase 3 - the plan already noted that the data takes longer than the code - but the mitigation is only as good as owner B actually starting it in November.
+
+Phase 3 becomes the heaviest phase in the plan: F1-F6, two languages, mobile screens, plus F7 and F9. If Phase 3 slips, the December squeeze happens anyway and with less warning. Watch Phase 3 closely in mid-November.
+
+**If the January deadline turns out to be earlier than Jan 31, the freeze must move back again.** Phase 6 cannot absorb another cut.
+### Consequences
+`PLAN.md` updated: the overview table, the freeze date, Phases 3, 4, 5 and 6, and the exam and January-deadline risk rows. The exam risk row stays open until the dates are published, at which point the assumption is checked rather than the plan re-made.
+### Alternatives Rejected
+Waiting for the exam dates; front-loading without moving the freeze; compressing Phase 5 instead of Phase 6 (Phase 5 carries the deployment and the last two acceptance criteria, so it has no slack either).

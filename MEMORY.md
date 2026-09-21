@@ -71,7 +71,9 @@ Nothing is half-done. Waiting on the user for the remaining decisions (see Known
 - **`api` has 7 npm audit findings** (6 moderate, 1 high), all from `drizzle-kit`'s dev-only esbuild chain. `npm audit fix --force` would downgrade drizzle-kit to 0.18.1, which is worse. Left as is; it never ships to production.
 - **`PLAN.md` Phase 2 still lists `LOCATION_REQUEST` in the migration list**, but D-042 replaced that table with fields on the settings row. Fix when Phase 2 starts.
 - **Ask the supervisor:** the exact January deadline, the December exam dates once published, and what the Phase-I Exam expects.
-- **December exams confirmed to exist (2026-09-22), dates undecided.** Phase 4 is Nov 30 - Dec 27, so overlap is near-certain. The `PLAN.md` risk row is live and the mitigation (freeze to Jan 17, pull F9 forward into Phase 3) is **awaiting the owner's decision**. Do not let this drift to November.
+- **December exams: handled 2026-09-22 (D-048).** Exams exist, dates undecided. Rather than wait, the plan assumes the overlap: F7 and F9 move into Phase 3 (server-side, integration-tested, no UI), **AC11 and AC22 now close in Phase 3**, Phase 4 becomes the UI phase with a written cut order, the freeze moves Jan 10 to Jan 17, and scenario data starts in Phase 3.
+  - **Phase 3 is now the heaviest phase in the plan.** If it slips, the December squeeze happens anyway with less warning. Check it in mid-November.
+  - **Phase 6 is down to two weeks** and still owes SM1-SM5 and Paper Part 3. This is the sharpest risk in the plan. If the January deadline turns out earlier than Jan 31, the freeze moves back - Phase 6 cannot absorb another cut.
 
 ## Important Context
 
