@@ -27,7 +27,7 @@ The MVP is a prototype demonstrated on **flood and landslide** scenarios in **Ut
 | **Volunteer** | Self-registers, logs in | Declares skills, sets availability, shares location (including when commanders ask), accepts/declines offers, reports completion. Uses English or Hindi. |
 | **On-site Commander** (SDRF/NDRF) | Account created by Admin | Works at the disaster site. Triages the queue, reviews recommendations, selects responders, modifies or rejects recommendations. |
 | **Office Commander** (SDRF/NDRF) | Account created by Admin | Works at the command office. Approves the on-site commander's selection, or sends it back. |
-| **Admin** | Seeded account | Creates/deactivates commander accounts, edits scoring weights, views audit log, loads scenarios, exports evaluation data. Never sees citizen phone numbers or volunteer locations. |
+| **Admin** | Seeded account | Creates/deactivates commander accounts, **resets any user's password**, edits scoring weights, views audit log, loads scenarios, exports evaluation data. Never sees citizen phone numbers or volunteer locations. |
 
 Both commander types can also verify volunteer skills, manage rescue team records, override severity, withdraw offers, ask volunteers to share their location, and resolve or cancel requests. **None of these shared actions is restricted to one commander type** (confirmed 2026-09-22, D-050). None of them creates an offer or a deployment, so none can bypass approval; restricting any of them would only block whichever commander happens to be available. In this document, "commander" means either type unless a type is named.
 
@@ -78,6 +78,7 @@ During disaster response, commanders decide which rescue request to serve first 
 
 **F2 — Volunteer registration and profile**
 - Self-registration: name, phone, password (at least 8 characters). Volunteers log in with their phone number, and a session lasts 12 hours.
+- **Forgotten passwords are reset by the Admin** (D-051). The MVP collects no email address and has no SMS, so there is no self-service recovery channel; the Admin issues a temporary password and reads it to the user. See AC25.
 - Volunteers declare skills from a fixed list: First Aid, Swimming, Boat Handling, Heavy Lifting, Driving, Local Language Proficiency.
 - Each declared skill starts as *Unverified*.
 - The volunteer can toggle availability between **Available** and **Unavailable**. Setting Available requires sharing location.
@@ -359,6 +360,7 @@ were set on 2026-09-15 without domain data and are not predictions.
 **Commander decisions**
 - **AC11:** No volunteer receives an offer, and no team becomes Deployed, unless an on-site commander has selected them (directly or after modifying) and an office commander has approved that selection. Both actions have audit entries.
 - **AC12:** A reject action by the on-site commander leaves the request Pending and records the optional reason.
+- **AC25:** Only the Admin can reset a password. The reset issues a new temporary password, shows it **exactly once**, stores only its bcrypt hash, **deletes the target user's existing sessions**, and writes an audit entry with the actor, the target user and the time. The temporary password never appears in a later response, in the audit entry, in a CSV export, or in logs.
 - **AC22:** An office commander cannot approve a request that has no selection waiting for approval, and an on-site commander cannot approve at all. **An office commander cannot create a selection, and a selection cannot be approved by the same user account that created it** (D-050). Approval is all-or-nothing: there is no way to approve part of a selection. A send-back leaves the request Pending, dispatches nothing, and records the reason.
 
 **Assignments**
@@ -391,7 +393,7 @@ were set on 2026-09-15 without domain data and are not predictions.
 4. ~~No shared commander action is restricted to one commander type (Target Users).~~ **Closed 2026-09-22 (D-050):** confirmed as written, and the missing mirror rule added - an office commander can never create a selection, and the selector and approver must be different accounts.
 5. ~~The office commander approves a selection exactly as sent and cannot edit it (F9).~~ **Closed 2026-09-22 (D-050):** confirmed as written, and approval is explicitly all-or-nothing.
 6. The 2-hour window in the Freshness term (F7).
-7. **Password reset is missing.** Nothing lets a volunteer who forgot their password back in, and only the Admin creates commander accounts. Either a commander can reset a volunteer's password, or this is accepted as a known limitation.
+7. ~~**Password reset is missing.**~~ **Closed 2026-09-22 (D-051):** the Admin can reset any user's password to a one-time temporary value. See AC25. Self-service recovery stays out of scope, because the MVP collects no email address and has no SMS.
 
 **Provisional: reconsider against scenario data in Phase 6 ([Provisional]):**
 - Priority band cutoffs: Critical ≥ 0.70, High ≥ 0.50 (F6). Decided 2026-09-15.

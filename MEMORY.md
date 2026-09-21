@@ -48,7 +48,7 @@ Nothing is half-done. Waiting on the user for the remaining decisions (see Known
 
 ## Known Problems
 
-- **The PRD has not been explicitly approved** (now Draft v2).
+- **The PRD has not been explicitly approved** (now Draft v2). It now has **25** acceptance criteria: AC25 was added on 2026-09-22 (D-051) for the Admin password reset.
 - **Still open and needed by about Oct 15 for Paper Part 2 (Methodology):**
   - ~~the severity rule table~~ **closed 2026-09-18 (D-047)**: a provisional points table is in PRD F5, marked `[Provisional]`. Authored from reasoning, **not** from domain consultation and **not** from `disasterIND.csv` (that file is event-level EM-DAT data with no per-request trapped/injured counts, so it cannot calibrate this rule - do not claim otherwise in the paper). The weak point is that a blank count scores 0; if Phase 6 finds the queue clusters at severity 1-2, score blanks as 1 point or make the F1 fields required.
   - severity scaling (Sev−1)/4, the team score formula, and the 2-hour Freshness window (open items 2, 3 and 6; agent proposals, not confirmed)

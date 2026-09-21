@@ -1212,3 +1212,34 @@ The different-accounts rule means a genuine two-person chain cannot be simulated
 `PRD.md` updated in three places: Target Users, F9 and AC22. Open items 4 and 5 are closed. `TESTING.md` extends the required AC22 integration tests with three new cases, including approval by the creating account. Phase 3 now has to enforce this in `services/decisions` when F9 moves there (D-048).
 ### Alternatives Rejected
 Restricting team records or skill verification to the office commander (blocks the available commander for no safety gain); letting the office commander edit a selection (destroys authorship, needs a second approval level); partial approval (editing by another name); leaving the mirror and same-account rules unstated (the demo path most likely to be taken is the one that breaks the thesis).
+
+## D-051 Admin-issued password reset
+
+### Date
+2026-09-22
+### Status
+Accepted. Closes PRD open item 7 and adds AC25.
+### Context
+The PRD had people log in but never let them back in. Volunteers self-register with a phone number and password (F2); commander accounts are created by the Admin; the Admin account is seeded. Nothing anywhere recovered a forgotten password, and the usual channels do not exist in this MVP: **no email address is collected at any point**, and `ARCHITECTURE.md` states the MVP has no SMS. A volunteer who forgot their password was permanently locked out, and a forgotten commander or Admin password meant hand-editing the production database.
+### Options Considered
+1. **Admin-side reset** for every user.
+2. **Stated limitation** - no recovery in the MVP, declared in the PRD and the report, with SMS OTP named as the deployment answer.
+3. **Commanders reset volunteers, Admin resets commanders**, which is closest to real operations.
+### Decision
+Option 1. The Admin resets any user's password: the system issues a temporary password, shows it **exactly once** on screen, stores only its bcrypt hash, **deletes that user's existing sessions**, and writes an audit entry. The Admin reads the temporary password to the user. Recorded as **AC25**.
+### Reasoning
+The project has to survive two graded examinations (Phase-I Oct 26 - Nov 3 2026, Phase-II May 2027) and an SM3 evaluation with **8-12 external evaluators** holding commander accounts, over roughly eight months. Across that span a forgotten password is close to certain, and without this feature the recovery is editing a live Neon database during a demo.
+
+One Admin route covers volunteers and commanders together, needs no new external service, and fits the existing audit design. Option 3 was rejected because it needs two flows and puts more load on commanders, who are already the busiest role. Option 2 is genuinely defensible for a prototype - PRD Non-Goals already rules out field deployment - and was presented as such; it was rejected because the build cost is roughly half a day and it removes a whole class of demo failure.
+
+Deleting the target user's sessions matches the existing rule that deactivating a commander revokes access immediately, and stops a reset being a silent way to leave an old session alive.
+### Trade-offs
+This is **new scope added before the Jan 17 freeze**, in a Phase 4 that D-048 already marked reduced-capacity for exams. It sits below the Admin weights editor in that phase's cut order.
+
+An Admin who can reset any password can take over any account, including a commander's. That is unavoidable for an in-app reset, and it is why the reset is audited. It does not weaken the two-level approval guarantee: a reset does not let the Admin approve anything, because the Admin role can neither select nor approve, and AC22 requires the selector and approver to be different accounts (D-050).
+
+Self-service recovery stays out of scope. If the project ever collected an email address or added SMS, this decision should be revisited.
+### Consequences
+`PRD.md`: the Admin row in Target Users, a note under F2, and **AC25**. The PRD now has **25** acceptance criteria, so `AGENTS.md`, `RULES.md`, `README.md` and `PLAN.md` were updated from AC1-AC24. `TESTING.md` allocates AC25 to integration tests. `PLAN.md` Phase 4 gains the build item.
+### Alternatives Rejected
+A stated limitation (defensible, but leaves a live failure mode across two graded exams); commander-side reset (two flows, busiest role); email or SMS recovery (the MVP collects no email and has no SMS, and either would need a new external service and the owner's approval).

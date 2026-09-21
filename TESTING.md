@@ -127,7 +127,7 @@ API tests are the integration tests above, run at the HTTP boundary.
 
 | Criteria | Verification |
 |---|---|
-| AC1, AC4, AC7, AC10, AC12, AC13, AC16, AC20 | Integration |
+| AC1, AC4, AC7, AC10, AC12, AC13, AC16, AC20, AC25 | Integration |
 | AC6, AC15 | Unit (formula term) and integration (eligibility / counter update) |
 | AC2 | Integration (reference ID, queue visibility) and manual (live update) |
 | AC19, AC21 | Manual |

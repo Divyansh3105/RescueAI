@@ -148,7 +148,7 @@ How these are implemented: `ARCHITECTURE.md` → Security Architecture and `RULE
 
 ## Testing Requirements
 
-- Each MVP feature is done only when the acceptance criteria it covers in `PRD.md` (AC1–AC24) are verified.
+- Each MVP feature is done only when the acceptance criteria it covers in `PRD.md` (AC1–AC25) are verified.
 - The required tests, the checks to run, and the Definition of Done are in **`TESTING.md`**. Follow it before reporting any task complete.
 
 ## Verification Checklist

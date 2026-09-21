@@ -173,6 +173,7 @@ Already decided: on 2026-09-15 (D-026 to D-034) band cutoffs and the Wait cap (b
 **Build:**
 - **F8:** recommendation panel showing contribution bars and a reason for every responder.
 - Admin weights editor.
+- **Admin password reset** (AC25, D-051): reset any user, show the temporary password once, drop that user's sessions, write an audit entry.
 - **F9 UI:** the on-site select / modify / reject screen, and the office commander's "Awaiting approval" queue filter with a read-only recommendation panel (D-042). The service itself already exists from Phase 3.
 - **F10:** volunteer offer screen (accept, decline, complete). The commander can withdraw an offer, mark a team's deployment complete, and set Resolved or Cancelled. Request status changes and reliability counters.
 - Personal data: citizen phone numbers and volunteer locations appear only in commander responses.
@@ -211,7 +212,7 @@ Already decided: on 2026-09-15 (D-026 to D-034) band cutoffs and the Wait cap (b
 
 **Exit criteria:**
 - **AC19** (checked by hand) and **AC20** (integration test) verified.
-- All 24 acceptance criteria verified, and all Required Checks pass.
+- All 25 acceptance criteria verified, and all Required Checks pass.
 - A scenario dataset loads on the deployed site, and the full loop runs on phones and a desktop.
 
 ---

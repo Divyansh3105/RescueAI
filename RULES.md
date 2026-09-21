@@ -11,7 +11,7 @@ This file covers **how to write code**. For everything else, see:
 ## General Rules
 
 - **Use the PRD formulas exactly** (Eq. 4.1 and 4.2, and the severity rule in F5). Changing a formula requires a PRD change first.
-- **Tie work to the PRD.** Every change should trace to a PRD feature (F1–F14) or acceptance criterion (AC1–AC24). Reference the ID in the PR description.
+- **Tie work to the PRD.** Every change should trace to a PRD feature (F1–F14) or acceptance criterion (AC1–AC25). Reference the ID in the PR description.
 
 ## Code Organization
 

@@ -106,7 +106,7 @@ Start with [`AGENTS.md`](AGENTS.md) — it is the entry point for both people an
 
 | File | What it covers |
 |---|---|
-| [`PRD.md`](PRD.md) | Scope, roles, features F1–F14, user flows, acceptance criteria AC1–AC24 |
+| [`PRD.md`](PRD.md) | Scope, roles, features F1–F14, user flows, acceptance criteria AC1–AC25 |
 | [`ARCHITECTURE.md`](ARCHITECTURE.md) | Stack, layers, data model, boundaries, decision status |
 | [`DESIGN.md`](DESIGN.md) | Design system — read before any UI work |
 | [`RULES.md`](RULES.md) | Coding rules and forbidden practices |
