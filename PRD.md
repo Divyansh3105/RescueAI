@@ -29,7 +29,14 @@ The MVP is a prototype demonstrated on **flood and landslide** scenarios in **Ut
 | **Office Commander** (SDRF/NDRF) | Account created by Admin | Works at the command office. Approves the on-site commander's selection, or sends it back. |
 | **Admin** | Seeded account | Creates/deactivates commander accounts, edits scoring weights, views audit log, loads scenarios, exports evaluation data. Never sees citizen phone numbers or volunteer locations. |
 
-Both commander types can also verify volunteer skills, manage rescue team records, override severity, withdraw offers, ask volunteers to share their location, and resolve or cancel requests. **[Assumption]** None of these shared actions is restricted to one commander type. In this document, "commander" means either type unless a type is named.
+Both commander types can also verify volunteer skills, manage rescue team records, override severity, withdraw offers, ask volunteers to share their location, and resolve or cancel requests. **None of these shared actions is restricted to one commander type** (confirmed 2026-09-22, D-050). None of them creates an offer or a deployment, so none can bypass approval; restricting any of them would only block whichever commander happens to be available. In this document, "commander" means either type unless a type is named.
+
+**The two level-specific actions are exclusive in both directions** (D-050):
+- An **on-site commander** creates selections and **can never approve one** (AC22).
+- An **office commander** approves or sends back selections and **can never create one**.
+- **The selector and the approver must be different user accounts**, enforced server-side. The Admin must not give one person both commander roles.
+
+Without the last two rules an office commander could create a selection and approve it, producing two audit entries by the same actor. That satisfies the wording of AC11 while defeating its purpose, and SM4 would report full compliance on a self-approved dispatch.
 
 Hospital and shelter staff are **future** roles.
 
@@ -157,7 +164,9 @@ Level 2, the office commander:
 
 Rules:
 - No offer or deployment happens without **both** a logged on-site selection and a logged office approval of that same selection.
-- **[Assumption]** The office commander approves the selection exactly as sent and cannot add or remove responders. To change it, they send it back.
+- The office commander approves the selection **exactly as sent** and cannot add or remove responders. To change it, they send it back (confirmed 2026-09-22, D-050).
+- **Approval is all-or-nothing.** There is no partial approval of some responders in a selection. Approving a subset is editing by another name, and it makes the selection's authorship ambiguous.
+- **An office commander cannot create a selection, and an on-site commander cannot approve one.** The two roles are exclusive, and the selecting and approving accounts must differ (see Target Users).
 - If a selected responder is no longer eligible when the office commander approves (for example, they took another assignment), that responder is not offered or deployed, and the office commander is told.
 
 **F10 — Assignment handling**
@@ -350,7 +359,7 @@ were set on 2026-09-15 without domain data and are not predictions.
 **Commander decisions**
 - **AC11:** No volunteer receives an offer, and no team becomes Deployed, unless an on-site commander has selected them (directly or after modifying) and an office commander has approved that selection. Both actions have audit entries.
 - **AC12:** A reject action by the on-site commander leaves the request Pending and records the optional reason.
-- **AC22:** An office commander cannot approve a request that has no selection waiting for approval, and an on-site commander cannot approve at all. A send-back leaves the request Pending, dispatches nothing, and records the reason.
+- **AC22:** An office commander cannot approve a request that has no selection waiting for approval, and an on-site commander cannot approve at all. **An office commander cannot create a selection, and a selection cannot be approved by the same user account that created it** (D-050). Approval is all-or-nothing: there is no way to approve part of a selection. A send-back leaves the request Pending, dispatches nothing, and records the reason.
 
 **Assignments**
 - **AC13:** A volunteer can accept or decline an offer. A decline is visible to the commanders, and the request stays assignable.
@@ -379,8 +388,8 @@ were set on 2026-09-15 without domain data and are not predictions.
 1. ~~The severity rule table (F5).~~ **Closed 2026-09-18 (D-047):** a provisional points table is now in F5. It is `[Provisional]`, not confirmed by domain consultation.
 2. Severity scaling `(severity − 1) ÷ 4` (F6).
 3. The team score formula (F7).
-4. No shared commander action is restricted to one commander type (Target Users).
-5. The office commander approves a selection exactly as sent and cannot edit it (F9).
+4. ~~No shared commander action is restricted to one commander type (Target Users).~~ **Closed 2026-09-22 (D-050):** confirmed as written, and the missing mirror rule added - an office commander can never create a selection, and the selector and approver must be different accounts.
+5. ~~The office commander approves a selection exactly as sent and cannot edit it (F9).~~ **Closed 2026-09-22 (D-050):** confirmed as written, and approval is explicitly all-or-nothing.
 6. The 2-hour window in the Freshness term (F7).
 7. **Password reset is missing.** Nothing lets a volunteer who forgot their password back in, and only the Admin creates commander accounts. Either a commander can reset a volunteer's password, or this is accepted as a known limitation.
 

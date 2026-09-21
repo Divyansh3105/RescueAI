@@ -84,7 +84,12 @@ API tests are the integration tests above, run at the HTTP boundary.
 - **AC18, access:** for each non-public route, check that at least one role not on its allowed list gets rejected, and that the public request route works without a session.
 - **AC14, personal data:** assert on the actual response body. The citizen phone number and volunteer coordinates must be absent from every volunteer and Admin response, before and after acceptance, and from CSV exports.
 - **AC11, approval:** check that no assignment row exists without an approved selection that has both an on-site selection audit entry and an office approval audit entry. Also check that a failed approval leaves neither an assignment nor an audit row, because they roll back together.
-- **AC22, two levels:** an office commander can't approve without a selection awaiting approval, an on-site commander can't approve at all, and a send-back creates no assignment.
+- **AC22, two levels:** an office commander cannot approve without a selection awaiting approval, an on-site commander cannot approve at all, and a send-back creates no assignment. Since D-050, also:
+  - an **office commander cannot create a selection** (the route rejects the role);
+  - a selection **cannot be approved by the same user account that created it**, even if that account somehow holds both roles;
+  - there is **no request shape that approves part of a selection** - approval is all-or-nothing.
+
+  The same-account test matters more than it looks: seeded demo accounts are exactly where that shortcut gets taken, and a self-approved dispatch would still report as compliant under SM4.
 
 ## Database Testing
 

@@ -1183,3 +1183,32 @@ SM1 with only two baseline operators is a small sample. The honest framing in th
 `PRD.md` Success Metrics now carries the protocol; Paper Part 2 (Oct 20) can describe the evaluation method concretely. Phase 4 must assign the actual names, and Phase 6 must warm the service before every timed run. `PLAN.md` Phase 1 decision 5 is closed.
 ### Alternatives Rejected
 Deferring all of it to Phase 6 (too late to change who writes the scoring code); naming people now (premature, and the constraints matter more than the names); dropping the manual baseline and reporting RescueAI timings alone (SM1 is defined as a comparison, and an absolute number proves nothing).
+
+## D-050 Commander role boundaries, and closing the self-approval hole
+
+### Date
+2026-09-22
+### Status
+Accepted. Closes PRD open items 4 and 5, and extends AC22.
+### Context
+Two PRD assumptions were open: whether any shared commander action belongs to only one commander type (item 4), and whether the office commander can edit a selection rather than only approve or send it back (item 5). Reviewing them surfaced a third problem that neither item asked about.
+### Options Considered
+Item 4: keep all shared actions shared, or restrict some (for example team records and skill verification) to the office commander. Item 5: approve-as-sent only, allow editing, or allow partial approval of some responders.
+### Decision
+- **Item 4: all six shared actions stay shared** - verify skills, manage team records, override severity, withdraw offers, request volunteer locations, resolve or cancel requests.
+- **Item 5: the office commander approves exactly as sent**, and to change a selection they send it back. **Approval is all-or-nothing**; there is no partial approval.
+- **New, not asked for:** the two level-specific actions are exclusive **in both directions**, and **the selector and approver must be different user accounts**, enforced server-side. The Admin must not give one person both commander roles. AC22 now covers all of this.
+### Reasoning
+**Item 4.** None of the six shared actions creates an offer or a deployment, so none can bypass approval. Withdrawing an offer removes rather than creates, so it cannot dispatch anything. Restricting any of them would only block whichever commander happens to be available, which in a disaster is the wrong trade.
+
+**Item 5.** Editing destroys authorship. The audit log exists to answer who decided what (AC11, AC22, SM4); if the office commander can add or remove responders, no one can say who chose a given responder. It also matches the real chain of command: the on-site commander knows who is actually reachable, and an office commander swapping responders from a distance is the failure mode two-level approval is meant to prevent. Building it is worse too - an edit path is a second way to author a selection, which would itself need approving, collapsing the two levels. Send-back costs seconds at 5-second polling. Partial approval was rejected for the same reason: it is editing under another name.
+
+**The hole.** AC22 said an on-site commander cannot approve. **Nothing said an office commander cannot select.** As written, an office commander could create a selection and approve it, producing two audit entries from one actor - satisfying the wording of AC11 while defeating its purpose, with SM4 reporting full compliance on a self-approved dispatch. The same-account rule is the more important half: the project will be demonstrated with a handful of seeded accounts, and giving one demo account both roles is exactly the shortcut that voids the central claim.
+### Trade-offs
+An office commander who spots one wrong responder among four must send the whole selection back rather than fix it. That is the intended cost: the on-site commander should make the swap, and the round trip is seconds.
+
+The different-accounts rule means a genuine two-person chain cannot be simulated by one person with one login, including during a demo or a hurried evaluation run. That friction is the point.
+### Consequences
+`PRD.md` updated in three places: Target Users, F9 and AC22. Open items 4 and 5 are closed. `TESTING.md` extends the required AC22 integration tests with three new cases, including approval by the creating account. Phase 3 now has to enforce this in `services/decisions` when F9 moves there (D-048).
+### Alternatives Rejected
+Restricting team records or skill verification to the office commander (blocks the available commander for no safety gain); letting the office commander edit a selection (destroys authorship, needs a second approval level); partial approval (editing by another name); leaving the mirror and same-account rules unstated (the demo path most likely to be taken is the one that breaks the thesis).
