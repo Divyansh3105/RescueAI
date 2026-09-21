@@ -81,7 +81,7 @@ Already decided: on 2026-09-15 (D-026 to D-034) band cutoffs and the Wait cap (b
 - ~~**The December university exam dates are confirmed.**~~ **Closed 2026-09-22 by decision, not by information (D-048).** Exams exist, dates undecided and possibly not published until November. The plan now assumes the overlap instead of waiting: F7 and F9 moved into Phase 3, the freeze moved to Jan 17. **When the dates are published, check the assumption - do not re-plan.** This is no longer a Phase 1 blocker.
 - ~~**Severity table fallback:** if the real table isn't decided by Sep 25, a provisional table goes into `PRD.md` marked `[Provisional]`.~~ **Taken 2026-09-18, ahead of the date (D-047).**
 - ~~Lint, type-check and tests pass locally in `web/` and `api/`.~~ Done, and in CI.
-- The empty app loads over HTTPS (**done** - <https://rescueai-70mu.onrender.com>), **and a phone can grant it location permission (still to check)**.
+- ~~The empty app loads over HTTPS, and a phone can grant it location permission.~~ **Both done 2026-09-22.** A real phone granted permission on the deployed HTTPS URL and returned a position at about +/-100 m accuracy, which is a network/wifi fix rather than a GPS lock - expected indoors. Re-check outdoors during Phase 3 when F1 and F2 actually use the coordinate.
 - ~~The "Not established" command sections in `AGENTS.md` and `TESTING.md` list commands that have actually been run.~~ Done.
 - Progress Report 1 submitted by Oct 7.
 

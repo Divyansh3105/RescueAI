@@ -64,7 +64,7 @@ Nothing is half-done. Waiting on the user for the remaining decisions (see Known
   - Scenario data must vary Wait, Freshness and Reliability, or three formula terms are constant in the evaluation.
   - The December exam dates gate the freeze date (Jan 10, or Jan 17 if they collide).
   - Password reset is a new open PRD item (open item 7).
-- **The Phase 1 location criterion could not be checked until 2026-09-22.** The placeholder page never called `navigator.geolocation`, so a phone had nothing to grant; the owner correctly reported the page showing only API and database status. A temporary "Share location" probe was added to `web/src/App.tsx` for exactly this check. **F1/F2 replace it in Phase 3**, with proper `en`/`hi` strings - it is scaffolding, not a feature.
+- **The Phase 1 location criterion is met (2026-09-22).** The placeholder page originally never called `navigator.geolocation`, so a phone had nothing to grant; a temporary "Share location" probe was added to `web/src/App.tsx`. A real phone then granted permission on the deployed HTTPS URL and returned a position at about +/-100 m. That is a network/wifi fix, not a GPS lock - normal indoors, and fine for ranking (100 m is 0.4% of the 25 km proximity radius). **Re-check outdoors in Phase 3**, when F1 and F2 start using the coordinate for real. The probe is scaffolding: **F1/F2 replace it in Phase 3** with proper `en`/`hi` strings.
 - **Phase 1 items still not answered:** the domain name, and copying the timeline PDF into the repo (still only in the user's Downloads), and phase owners.
 - **Paper Part 1 (Sep 10) was submitted** - confirmed by the owner 2026-09-18. No longer a risk.
 - **Progress Report 1 is not written.** Due Sep 28 - Oct 7.
