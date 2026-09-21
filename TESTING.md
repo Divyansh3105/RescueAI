@@ -149,6 +149,13 @@ The commands for 1–3 are in the Test Stack table above. Run each in both `web/
 
 First green run on GitHub: 2026-09-18, both jobs passing on the initial push to `main`. Repository: <https://github.com/Divyansh3105/RescueAI>.
 
+## Evaluation Measurement
+
+The Phase 6 measurement of SM1-SM5 is **not** part of the automated suite, but it has rules of its own that are as binding as the test rules above. They are in `PRD.md` under Success Metrics -> Evaluation Protocol (D-049). The two that are easiest to get wrong:
+
+- **The person who writes `api/src/scoring/` must not build the SM2 ground truth.** Otherwise Precision@5 measures the author against themselves.
+- **Warm the deployed instance before every timed SM1 run.** A free Render service cold-starts in roughly 50 seconds, which would sit inside the reported median.
+
 ## Definition of Done
 
 A change is done when:

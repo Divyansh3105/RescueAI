@@ -60,7 +60,7 @@ A phase ends only when its exit criteria hold and the Required Checks in `TESTIN
 2. ~~**Severity rule table** (PRD open item 1).~~ **Done 2026-09-18 (D-047):** a provisional points table is in PRD F5. Still needs domain confirmation, and Phase 6 must re-check it.
 3. The remaining formula details: severity scaling, the team score, and the 2-hour Freshness window (PRD open items 2, 3 and 6).
 4. Whether any shared commander action belongs to only one commander type, and whether the office commander can edit a selection (PRD open items 4 and 5).
-5. The evaluation method for the paper: who builds the ground truth, how the manual baseline runs, and who the SUS evaluators are.
+5. ~~The evaluation method for the paper.~~ **Done 2026-09-22 (D-049):** the protocol is in `PRD.md` under Success Metrics. Roles and constraints are fixed; **Phase 4 must assign the actual names.**
 
 6. ~~Which VM to use~~ - **done 2026-09-18 (D-044):** Render free tier + Neon PostgreSQL, live at <https://rescueai-70mu.onrender.com>. A custom domain is now optional; the Render subdomain is HTTPS and works for every remaining milestone.
 
@@ -223,10 +223,10 @@ Already decided: on 2026-09-15 (D-026 to D-034) band cutoffs and the Wait cap (b
 **Goal:** Measured SM1–SM5 results written up as Paper Part 3.
 
 **Work:**
-- **SM1:** run the same scenarios manually (with the same on-site and office approval steps) and with RescueAI, and compare the median time from submission to office approval.
+- **SM1:** run the same scenarios manually (with the same on-site and office approval steps) and with RescueAI, and compare the median time from submission to office approval. **Manual runs come first, and the Render instance is warmed before every timed run** (D-049, D-044).
 - **Reconsider the provisional values** (band cutoffs, the 60-minute Wait cap) against the scenario data, and record the outcome in `DECISIONS.md`.
 - **SM2:** Precision@5 and NDCG@5 of volunteer rankings against the ground truth, using the graded relevance defined with the scenario data. The metrics stay at 5 even though the shortlist shows 10.
-- **SM3:** SUS questionnaire with evaluators acting as commanders.
+- **SM3:** SUS questionnaire with evaluators acting as commanders. Follow the Evaluation Protocol in `PRD.md` (D-049): 8-12 evaluators, none on the team.
 - **SM4 / SM5:** from the audit export, check that 100% of assignments have an approval and 100% of recommendations have an explanation.
 - **Write the limitations down** for the paper: straight-line distance in mountain terrain, synthetic volunteers, no routing, dispatch stalls when no office commander is on duty, and no automatic detection of duplicate reports.
 - Fix bugs found during the evaluation runs.

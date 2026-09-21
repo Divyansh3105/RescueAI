@@ -1148,3 +1148,38 @@ Phase 3 becomes the heaviest phase in the plan: F1-F6, two languages, mobile scr
 `PLAN.md` updated: the overview table, the freeze date, Phases 3, 4, 5 and 6, and the exam and January-deadline risk rows. The exam risk row stays open until the dates are published, at which point the assumption is checked rather than the plan re-made.
 ### Alternatives Rejected
 Waiting for the exam dates; front-loading without moving the freeze; compressing Phase 5 instead of Phase 6 (Phase 5 carries the deployment and the last two acceptance criteria, so it has no slack either).
+
+## D-049 Evaluation protocol: who does each job
+
+### Date
+2026-09-22
+### Status
+Accepted. Closes the open evaluation-method item that `PLAN.md` Phase 1 listed as decision 5.
+### Context
+`PRD.md` commits to reporting SM1-SM5, and the project synopsis (Section 4.9) already published the *shape* of the evaluation: ground-truth assignments from simulated scenarios, a manual coordination baseline on the same scenarios, and a standard usability questionnaire given to evaluators acting as commanders. The paper must stay consistent with that. What was never settled is **who performs each job**, and the owner asked three times what that question even meant. For SM1 and SM2 the answer decides whether the results mean anything.
+### Options Considered
+Leave staffing until Phase 6; assign people now; or fix the **roles and their constraints** now and the names later.
+### Decision
+Fix the roles and constraints now; assign names in Phase 4. Written into `PRD.md` under Success Metrics as "Evaluation Protocol".
+- **SM2:** the scoring author (owner B, who writes `api/src/scoring/`) **must not** build the ground truth. Graded relevance (ideal / acceptable / wrong), from a written rubric fixed before anyone sees system output, labelled independently by two people, with **Cohen's kappa reported**.
+- **SM1:** two team members run the manual baseline by messaging group and spreadsheet, including both approval steps, **before** using RescueAI on those scenarios; scenario order counterbalanced; **the Render instance warmed before every timed run**; both medians reported, not only the gap.
+- **SM3:** 8-12 evaluators, **none on the team**. Classmates acceptable, faculty better, serving SDRF/NDRF personnel best. The evaluator mix is reported.
+- **SM4, SM5:** computed from the audit export. No evaluators.
+### Reasoning
+The decisive risk is **circularity in SM2**. If the person who wrote the ranking formula also decides which volunteers "should" have been ranked highest, Precision@5 measures the author's consistency with themselves, not the system's quality. It reliably produces a near-perfect score and is the most common flaw in student ranking evaluations; a Scopus reviewer will find it. Separating the roles costs nothing, and reporting inter-rater agreement converts the weakest part of the method into something defensible.
+
+The SM1 ordering constraint addresses the mirror problem: a manual baseline run by someone who has already seen RescueAI solve those scenarios is artificially fast, which understates the gap, or artificially slow if they know the thesis. Running manual first, with counterbalanced order, removes the learning effect.
+
+The Render warm-up is not a detail. SM1 is a **median time** measurement on a free instance that sleeps after about 15 minutes and cold-starts in roughly 50 seconds (D-044). One unwarmed run can move the median more than the system does.
+
+Roles rather than names, because `PLAN.md` assigns owners A, B and C only provisionally and the team may reallocate. The constraints are what must survive.
+### Trade-offs
+Two independent labellers over every request in every scenario is real work, on a Phase 6 that D-048 cut to two weeks. This is why D-048 moved scenario and ground-truth work into Phase 3.
+
+Team members evaluating their own project is weak for SM3 even when they are not the authors; classmates share the same background and inflate usability scores. This is a stated limitation unless the mentor can reach real responders.
+
+SM1 with only two baseline operators is a small sample. The honest framing in the paper is an indicative comparison, not a controlled trial.
+### Consequences
+`PRD.md` Success Metrics now carries the protocol; Paper Part 2 (Oct 20) can describe the evaluation method concretely. Phase 4 must assign the actual names, and Phase 6 must warm the service before every timed run. `PLAN.md` Phase 1 decision 5 is closed.
+### Alternatives Rejected
+Deferring all of it to Phase 6 (too late to change who writes the scoring code); naming people now (premature, and the constraints matter more than the names); dropping the manual baseline and reporting RescueAI timings alone (SM1 is defined as a comparison, and an absolute number proves nothing).

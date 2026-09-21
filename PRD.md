@@ -277,6 +277,55 @@ The owner confirmed these targets on 2026-09-15. They are not yet grounded in do
 | SM4 | Dispatched assignments that have both a logged on-site selection and a logged office approval | 100% (hard) |
 | SM5 | Recommendations that display an explanation | 100% (hard) |
 
+### Evaluation Protocol
+
+Decided 2026-09-22 (D-049), closing the open evaluation-method item. The *shape* of this was
+already published in the project synopsis (Section 4.9), so the paper must stay consistent with
+it. What follows fixes **who does each job**, because for SM1 and SM2 the wrong person
+invalidates the result. Names are assigned in Phase 4; the roles below are what must not change.
+
+Throughout, **"the scoring author"** means whoever writes `api/src/scoring/` — owner B in
+`PLAN.md`.
+
+**SM2 — ground truth for ranking quality.**
+- For every request in every scenario, the ground truth lists which volunteers should have been
+  offered, with **graded relevance** (ideal / acceptable / wrong). NDCG needs grades, not a
+  yes-or-no list.
+- **The scoring author must not build the ground truth.** Grading the formula against its own
+  author's intuitions is circular: Precision@5 comes out near 1.0 and measures nothing.
+- The ground truth is built from a **written rubric fixed before anyone sees system output**.
+  The rubric is included in the paper.
+- **Two people label independently**, disagreements are resolved by discussion, and
+  **Cohen's kappa is reported** as the inter-rater agreement.
+- Built during Phases 3 and 4, not Phase 6 (`PLAN.md`, D-048).
+
+**SM1 — the manual baseline.**
+- Two team members act as on-site commander and office commander and coordinate the same
+  scenarios **by hand**: a messaging group plus a spreadsheet of volunteers, including both
+  approval steps. Timed from request submission to office approval.
+- **The manual runs happen before those people use RescueAI on the same scenarios**, so the
+  baseline is not inflated by already knowing the answer. Scenario order is counterbalanced.
+- **The deployed instance is warmed before every timed run.** It is a free Render service that
+  sleeps after about 15 minutes idle and cold-starts in roughly 50 seconds (D-044); an unwarmed
+  run puts that cold start inside the reported median.
+- Both the RescueAI median and the manual median are reported, not only the percentage gap.
+
+**SM3 — usability.**
+- The standard 10-item System Usability Scale, administered to evaluators acting as commanders.
+- **8–12 evaluators, none of them on the project team.**
+- Classmates are acceptable. Faculty are better. **Two or more serving SDRF or NDRF personnel
+  would be worth more than twenty classmates**, because it changes the claim from "usable by
+  students" to "usable by responders" — ask the mentor whether this can be arranged.
+- The evaluator mix is reported in the paper, because it bounds what the SUS score means.
+
+**SM4 and SM5 — no evaluators needed.** Both are computed directly from the audit export
+(PRD F14): the share of assignments carrying both a logged on-site selection and a logged office
+approval, and the share of recommendations that displayed an explanation. Both targets are hard
+100% requirements, so any shortfall is a defect, not a measurement.
+
+**Reporting.** Every number is reported as measured, including missed targets. SM1–SM3 targets
+were set on 2026-09-15 without domain data and are not predictions.
+
 ## Acceptance Criteria
 
 **Request intake**
