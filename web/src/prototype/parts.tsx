@@ -30,7 +30,7 @@ export function LangSwitch({ lang, setLang }: { lang: Lang; setLang: (l: Lang) =
   );
 }
 
-// DESIGN.md -> Component Patterns. Color never carries meaning alone: every badge has text.
+// docs/DESIGN.md -> Component Patterns. Color never carries meaning alone: every badge has text.
 
 const bandStyle: Record<Band, string> = {
   Critical: 'border-red-700 bg-red-50 text-red-700',

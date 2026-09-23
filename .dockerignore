@@ -4,4 +4,4 @@
 .git
 .github
 *.md
-disasterIND.csv
+data/

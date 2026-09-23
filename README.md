@@ -16,8 +16,8 @@ instance, so it sleeps after ~15 minutes idle and the first request then takes ~
 
 > **Status: scaffolded, no features.** The packages build, lint, type-check and deploy, and
 > `/api/health` answers. No PRD feature (F1–F14) is implemented yet — there is no
-> database schema, no auth and no scoring. See [`MEMORY.md`](MEMORY.md) for exactly where things
-> stand and [`PLAN.md`](PLAN.md) for what lands when.
+> database schema, no auth and no scoring. See [`docs/MEMORY.md`](docs/MEMORY.md) for exactly where things
+> stand and [`docs/PLAN.md`](docs/PLAN.md) for what lands when.
 
 ## The loop
 
@@ -97,7 +97,8 @@ docker-compose.yml        db + app, building that same image
 render.yaml               Render service definition
 neon.ts                   Neon branch policy, applied with `neon deploy`
 .github/workflows/ci.yml  lint, type-check and tests on every pull request
-disasterIND.csv           EM-DAT India disaster records, reference data for scenarios
+docs/                     PRD, architecture, design, rules, decisions, plan
+data/disasterIND.csv      EM-DAT India disaster records, reference data for scenarios
 ```
 
 ## Documentation
@@ -106,14 +107,14 @@ Start with [`AGENTS.md`](AGENTS.md) — it is the entry point for both people an
 
 | File | What it covers |
 |---|---|
-| [`PRD.md`](PRD.md) | Scope, roles, features F1–F14, user flows, acceptance criteria AC1–AC25 |
-| [`ARCHITECTURE.md`](ARCHITECTURE.md) | Stack, layers, data model, boundaries, decision status |
-| [`DESIGN.md`](DESIGN.md) | Design system — read before any UI work |
-| [`RULES.md`](RULES.md) | Coding rules and forbidden practices |
-| [`TESTING.md`](TESTING.md) | Testing strategy and the Definition of Done |
-| [`PLAN.md`](PLAN.md) | Seven-phase delivery plan and department milestones |
-| [`DECISIONS.md`](DECISIONS.md) | Decision log, append-only |
-| [`MEMORY.md`](MEMORY.md) | Current state, open problems, next steps |
+| [`docs/PRD.md`](docs/PRD.md) | Scope, roles, features F1–F14, user flows, acceptance criteria AC1–AC25 |
+| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Stack, layers, data model, boundaries, decision status |
+| [`docs/DESIGN.md`](docs/DESIGN.md) | Design system — read before any UI work |
+| [`docs/RULES.md`](docs/RULES.md) | Coding rules and forbidden practices |
+| [`docs/TESTING.md`](docs/TESTING.md) | Testing strategy and the Definition of Done |
+| [`docs/PLAN.md`](docs/PLAN.md) | Seven-phase delivery plan and department milestones |
+| [`docs/DECISIONS.md`](docs/DECISIONS.md) | Decision log, append-only |
+| [`docs/MEMORY.md`](docs/MEMORY.md) | Current state, open problems, next steps |
 
 ## Non-negotiables
 

@@ -1,6 +1,6 @@
 # One image: the API, with the built SPA baked in and served from the same origin.
 # Same-origin keeps the session cookie SameSite=Lax, which is what mobile browsers
-# need (ARCHITECTURE.md -> Security Architecture). Used by both `docker compose`
+# need (docs/ARCHITECTURE.md -> Security Architecture). Used by both `docker compose`
 # and Render.
 
 FROM node:24-alpine AS web

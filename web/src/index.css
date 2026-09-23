@@ -4,8 +4,8 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /*
- * Design tokens. The single source of truth is DESIGN.md -> Colors, Border Radius.
- * Light theme only: DESIGN.md forbids dark mode and web fonts.
+ * Design tokens. The single source of truth is docs/DESIGN.md -> Colors, Border Radius.
+ * Light theme only: docs/DESIGN.md forbids dark mode and web fonts.
  * Change a token here, never per component.
  */
 :root {

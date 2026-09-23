@@ -6,7 +6,7 @@ import { band, priority, requests, teams, volunteers, type Band } from './data';
 import { PriorityBadge, StatusBadge, type Status } from './parts';
 
 /*
- * Marker shapes are a prototype choice (DESIGN.md lists them as Not established).
+ * Marker shapes are a prototype choice (docs/DESIGN.md lists them as Not established).
  * Every marker differs by shape and letter as well as color, so color is never the only signal:
  *   request = circle with the band letter, volunteer = small square "V", team base = diamond "T".
  */

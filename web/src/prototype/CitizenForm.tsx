@@ -42,7 +42,7 @@ export function CitizenForm() {
     return e;
   }
 
-  // DESIGN.md -> Forms: validate on submit, then re-validate as the user edits.
+  // docs/DESIGN.md -> Forms: validate on submit, then re-validate as the user edits.
   function recheck(next: Partial<{ coords: Coords | null; hazard: typeof hazard; phone: string }>) {
     if (submitted) setErrors(validate({ coords, hazard, phone, ...next }));
   }

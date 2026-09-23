@@ -81,8 +81,9 @@ Future components (not part of the MVP; see PRD "Future Features") would sit beh
 
 **Existing** (the layout below was created on 2026-09-18; the `routes/`, `services/` and `scoring/` directories are empty):
 ```
-PRD.md  DESIGN.md  AGENTS.md  CLAUDE.md  ARCHITECTURE.md  RULES.md
-TESTING.md  PLAN.md  MEMORY.md  DECISIONS.md      (repository root)
+README.md  AGENTS.md  CLAUDE.md                     (repository root)
+docs/                PRD, DESIGN, ARCHITECTURE, RULES, TESTING, PLAN, MEMORY, DECISIONS
+data/                disasterIND.csv (reference only, never loaded)
 web/                 React SPA (all roles, route-based role shells per DESIGN.md)
   src/index.css      Design tokens from DESIGN.md
   src/components/ui/ shadcn/ui components (shadcn CLI)

@@ -1,4 +1,4 @@
-# TESTING.md -> CI Testing (D-039): lint, type-check and tests on every pull request.
+# docs/TESTING.md -> CI Testing (D-039): lint, type-check and tests on every pull request.
 name: CI
 
 on:
