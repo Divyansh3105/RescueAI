@@ -110,6 +110,7 @@ The layout has one shell per role (roles and access are defined in PRD AC18):
   - **Queue uses a split view on `lg`:** the prioritized list on the left, the selected request's detail and recommendations on the right. Below `lg`, the detail opens as its own page.
 - **Admin:** the commander shell, plus Commanders, Weights, Data (scenario load and CSV export), and Audit Log.
 - **Map:** fills the content area. Its legend is always visible. Everything shown on the map is also available as a list (the queue, volunteers, teams).
+  - **Marker shapes: Proposed** (used by the Progress Report 1 prototype, not yet confirmed): request = filled circle in the band color with the band letter (C / H / N), available volunteer = white square with "V", team base = dark diamond with "T". The selected request shows its 25 km proximity radius as a dashed circle.
 
 ## Responsive Breakpoints
 

@@ -53,6 +53,8 @@ web/                   React SPA (Vite, Tailwind v4, shadcn/ui, TanStack Query)
   src/index.css        Design tokens from DESIGN.md. Change a token here, never per component.
   src/components/ui/   shadcn/ui components, added with the shadcn CLI
   src/lib/utils.ts     cn() class merge helper
+  src/prototype/       UI prototype for Progress Report 1: every role's main screen on
+                       synthetic sample data, no API. Phase 3 replaces it with real screens.
   components.json      shadcn CLI config (slate base, CSS variables, @/* alias)
 api/                   Express API (strict TypeScript)
   src/app.ts           Express app: /api/health, 404 and error handler in the D-035 shape
