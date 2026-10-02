@@ -45,6 +45,16 @@ docs/
   PLAN.md          Seven-phase delivery plan: dates, scope and exit criteria per phase (Proposed)
 data/
   disasterIND.csv  EM-DAT India disaster records (783 rows), reference data for scenarios
+  uttarakhand_flood_landslide_events.csv
+                   13 Uttarakhand flood/landslide events (1998-2025) with place, coordinates,
+                   casualties, rescue scale and responders, collected from Wikipedia and news
+                   (2026-10-02). Links to EM-DAT by emdat_disno. coord_source=approx_town_centroid
+                   means the point is the nearest town, not the exact site. Reference only.
+  uttarakhand_landslides_nasa_glc.csv
+                   189 Uttarakhand rainfall-triggered landslides (2007-2016) with lat/lon,
+                   extracted from the NASA Global Landslide Catalog export (data.nasa.gov).
+                   location_accuracy is the error radius (1km-50km). Cite Kirschbaum et al.
+                   2010 and 2015 when used. Reference only.
 ```
 
 Also existing (created 2026-09-18, Phase 1 scaffold; no features yet):
