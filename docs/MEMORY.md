@@ -1,6 +1,6 @@
 # Project Memory
 
-_Last updated: 2026-09-18 (session 4). Update this after every meaningful session and delete anything that's out of date._
+_Last updated: 2026-10-02 (scenario reference data session). Update this after every meaningful session and delete anything that's out of date._
 
 ## Current Status
 
@@ -42,6 +42,12 @@ Session 4, 2026-09-18 (Phase 1 build):
 - `.github/workflows/ci.yml`: two jobs (api with a Postgres service container, web), lint + type-check + test on every PR. **Pushed to <https://github.com/Divyansh3105/RescueAI>; both jobs passed on GitHub.**
 - D-043 records the scaffold choices. `AGENTS.md`, `TESTING.md` and `ARCHITECTURE.md` updated with commands that were actually run.
 
+Session 2026-10-02 (scenario reference data, owner B's Phase 3 work started early):
+- Collected real Uttarakhand flood/landslide records in the owner's Brave browser (through the Claude in Chrome extension; Brave shows up as "Browser 1"). **Merged as PR #1** (<https://github.com/Divyansh3105/RescueAI/pull/1>, squash `1423e7d`), the repo's first PR. CI passed; **merged without the teammate review RULES.md asks for**, at the owner's request.
+- `data/uttarakhand_flood_landslide_events.csv`: 13 events 1998-2025 (Malpa, Kedarnath 2013, Chamoli 2021, Kumaon Oct 2021, Gaurikund 2023, Kedarnath 2024, Dharali 2025, Dehradun 2025, and smaller ones). Columns cover place, lat/lon, deaths, missing, rescued/evacuated, responders with team counts, scenario notes, `emdat_disno` (8 rows join to `disasterIND.csv`), sources. 10 of 13 coordinates are `approx_town_centroid`, not the site.
+- `data/uttarakhand_landslides_nasa_glc.csv`: 189 Uttarakhand landslides 2007-2016 with lat/lon, from the NASA Global Landslide Catalog export. `location_accuracy` is an error radius, 1-50 km. NASA asks for a citation of Kirschbaum et al. 2010 and 2015 - put it in the paper if this file is used.
+- Left out on purpose: avalanches, Silkyara tunnel, Joshimath subsidence (PRD scope is flood and landslide). Dead ends: ReliefWeb API needs a registered appname, ndrf.gov.in did not load.
+
 ## Currently In Progress
 
 Nothing is half-done. Waiting on the user for the remaining decisions (see Known Problems).
@@ -60,7 +66,8 @@ Nothing is half-done. Waiting on the user for the remaining decisions (see Known
 - **Still Proposed or not established:**
   - D-025 / AD11: future Python ML service. Deliberately left Proposed; it matters only if ML is added.
   - Database backups (a nightly `pg_dump` is recommended but not confirmed), VM provider, domain name.
-  - Scenario dataset format, volunteer bottom tab bar, map marker shapes (needed in Phases 3-5).
+  - Scenario dataset format, volunteer bottom tab bar, map marker shapes (needed in Phases 3-5). The real-event reference data for scenarios now exists (see 2026-10-02); the loader format does not.
+  - **Neither new data file has per-request trapped/injured counts**, so like `disasterIND.csv` they cannot calibrate the D-047 severity table. They give realistic places, timings and scale for synthetic scenarios; the requests, volunteers and ground truth are still to be built, and must be synthetic.
 - **From the 2026-09-18 plan review** (already applied to `PLAN.md`, `PRD.md`, `ARCHITECTURE.md`, `DESIGN.md`):
   - Phase 2 (Oct 8 - Nov 3) is the highest-risk phase, not Phase 4. It holds two fixed external dates.
   - Scenario data must vary Wait, Freshness and Reliability, or three formula terms are constant in the evaluation.
@@ -73,7 +80,7 @@ Nothing is half-done. Waiting on the user for the remaining decisions (see Known
 - **UI prototype for the report (2026-09-23):** `web/src/prototype/` replaced the placeholder `App.tsx`. A switcher at the top shows Citizen form (en/hi), Volunteer home (en/hi), On-site commander queue and Office commander approval, all on synthetic Dehradun data with no API. Scores use the PRD formulas in the browser, so the breakdowns add up, but **this is not the scoring implementation** - that is `api/src/scoring/` in Phase 2. Don't describe the prototype as working features. The old "Share location" probe is gone; the citizen form's "Use my location" does the same job. `index.css` now pins Tailwind's `dark:` variant to a `.dark` class so shadcn components stay light when the OS is in dark mode.
   - Polish pass (same day): commander Map (Leaflet + OSM, lazy-loaded so citizen phones never download it), sidebar icons, a summary strip, signed-in commander names, and a who-did-what trail on each decision showing two different accounts (AC22). The volunteer screen now has Accept -> assignment -> Mark completed plus service history; the citizen confirmation now says what happens next and mentions 112. Outline buttons use `--input` borders (3:1), the `lg` button is 44px, and control shadows are removed per DESIGN.md. `leaflet` + `@types/leaflet` were added: an adopted tool (ARCHITECTURE Maps: Decided), not a new one.
   - **Map marker shapes are only a prototype choice** (request = circle with the band letter, volunteer = square "V", team = diamond "T"). DESIGN.md lists them as Proposed; confirm them before Phase 5.
-  - Not committed yet.
+  - Committed as `cb47c72`.
 - **`api` has 7 npm audit findings** (6 moderate, 1 high), all from `drizzle-kit`'s dev-only esbuild chain. `npm audit fix --force` would downgrade drizzle-kit to 0.18.1, which is worse. Left as is; it never ships to production.
 - **`PLAN.md` Phase 2 still lists `LOCATION_REQUEST` in the migration list**, but D-042 replaced that table with fields on the settings row. Fix when Phase 2 starts.
 - **Ask the supervisor:** the exact January deadline, the December exam dates once published, and what the Phase-I Exam expects.
@@ -108,11 +115,12 @@ Nothing is half-done. Waiting on the user for the remaining decisions (see Known
 
 ## Next Steps
 
-1. **The severity rule table and the evaluation method.** Both are needed for Paper Part 2 (Oct 20), and the severity table blocks F5 and the queue. `PLAN.md` says a `[Provisional]` table goes into the PRD if the real one isn't decided by Sep 25.
-2. The rest of the open items above, then PRD approval.
-3. **Deployment is done.** Remaining: check on a real Android phone that <https://rescueai-70mu.onrender.com> can get location permission (the last Phase 1 deploy criterion), and set the health check path to `/api/health` in the Render dashboard - `render.yaml` sets it but Render only reads that file for Blueprint-created services (D-046). Then check a phone can grant location permission on the Render HTTPS URL. **Warm the service before any SM1 timing run in Phase 6** - a free instance sleeps after ~15 min and cold-starts in ~50 s, which would silently inflate the median (D-044).
-4. Write Progress Report 1 (due Oct 7).
-5. Then Phase 2. Write its detailed task plan with `superpowers:writing-plans` when it starts.
+1. **Write Progress Report 1 (due Oct 7)** - the most urgent item. The UI prototype and the new scenario reference data can both go in it.
+2. **Mentor answers from `MENTOR-REVIEW.md` by Oct 15**, for Paper Part 2 (Oct 20). No answer means adopt the recommendations as `[Provisional]` (see Known Problems).
+3. PRD approval.
+4. **Phase 2 starts Oct 8.** Write its detailed task plan with `superpowers:writing-plans` when it starts.
+5. Scenario data (owner B, in parallel): define the loader format, then build synthetic flood and landslide scenarios on the 2026-10-02 reference files, meeting the PLAN.md Phase 4 checklist (backdated times, varied location ages and histories, 50+ volunteers, graded ground truth).
+6. Render: set the health check path to `/api/health` in the dashboard - `render.yaml` sets it but Render only reads that file for Blueprint-created services (D-046). **Warm the service before any SM1 timing run in Phase 6** - a free instance sleeps after ~15 min and cold-starts in ~50 s, which would silently inflate the median (D-044).
 
 ## Things to Be Careful About
 
@@ -120,6 +128,7 @@ Nothing is half-done. Waiting on the user for the remaining decisions (see Known
 - **`.env.local` holds the real Neon `DATABASE_URL`.** It is git-ignored. Never print it, paste it into a file, or put it in a commit - pass it with `node --env-file=../.env.local`.
 - **The `neondb_owner` password was pasted into a chat transcript on 2026-09-18**, with the owner's informed agreement, to set `DATABASE_URL` on Render through the Render MCP. **Rotating it is still worth doing**: reset the role password in the Neon console, then update the Render environment variable and re-run `neon link`. Prefer having the owner set secrets by hand next time.
 - **A root `package.json` exists but is NOT a workspace.** It carries the Neon CLI packages only. Application dependencies go in `web/` or `api/` (D-043, D-045).
+- **Opening a direct `.csv` link in the browser downloads it** to the owner's Downloads folder without asking. This happened once on 2026-10-02 (`Global_Landslide_Catalog_Export_rows.csv`; the owner then chose to use it). Check before navigating to file links.
 - **Don't document commands or tools that don't exist yet.** The AGENTS.md command sections stay "Not established" until they are real.
 - **Guard the hard invariants above all:**
   - no dispatch without a logged on-site selection **and** a logged office approval
