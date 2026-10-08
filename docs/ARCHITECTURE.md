@@ -79,20 +79,20 @@ Future components (not part of the MVP; see PRD "Future Features") would sit beh
 
 ## Repository Structure
 
-**Existing** (the layout below was created on 2026-09-18; the `routes/`, `services/` and `scoring/` directories are empty):
+**Existing** (the layout below was created on 2026-09-18; the `routes/`, `services/` and `scoring/` directories are not created yet; Phase 2 adds them):
 ```
 README.md  AGENTS.md  CLAUDE.md                     (repository root)
 docs/                PRD, DESIGN, ARCHITECTURE, RULES, TESTING, PLAN, MEMORY, DECISIONS
-data/                disasterIND.csv (reference only, never loaded)
+data/                disasterIND.csv and uttarakhand/ (reference only, never loaded)
 web/                 React SPA (all roles, route-based role shells per DESIGN.md)
   src/index.css      Design tokens from DESIGN.md
   src/components/ui/ shadcn/ui components (shadcn CLI)
   src/lib/           small pure helpers
 api/                 Express API (TypeScript)
   src/app.ts         the Express app: /api/health, 404 and error handler
-  src/routes/        HTTP handlers: auth middleware, validation, response shaping (empty)
-  src/services/      Business rules: requests, volunteers, teams, recommendations, decisions, assignments, audit, admin (empty)
-  src/scoring/       Pure functions for Eq. 4.1 and 4.2 and the severity rule, no I/O (empty)
+  src/routes/        HTTP handlers: auth middleware, validation, response shaping (Phase 2)
+  src/services/      Business rules: requests, volunteers, teams, recommendations, decisions, assignments, audit, admin (Phase 2)
+  src/scoring/       Pure functions for Eq. 4.1 and 4.2 and the severity rule, no I/O (Phase 2)
   src/db/            Drizzle client and schema; migrations output to api/drizzle/
 docker-compose.yml   app + db, building the same Dockerfile Render deploys
 Dockerfile           Builds the SPA and the API into one image (the deployed unit)

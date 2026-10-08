@@ -45,26 +45,27 @@ docs/
   PLAN.md          Seven-phase delivery plan: dates, scope and exit criteria per phase (Proposed)
 data/
   disasterIND.csv  EM-DAT India disaster records (783 rows), reference data for scenarios
-  uttarakhand_flood_landslide_events.csv
+  uttarakhand/      Uttarakhand reference data. Reference only, never loaded.
+    flood_landslide_events.csv
                    22 Uttarakhand flood/landslide events (1998-2026) with place, coordinates,
                    casualties, rescue scale and responders, collected from Wikipedia and news
                    (2026-10-02, 9 added 2026-10-08). Links to EM-DAT by emdat_disno.
                    coord_source says how good the point is: approx_town_centroid,
                    approx_between_places and approx_on_route are estimates; osm_place_node is
                    the named village's OSM point, not the exact site. Reference only.
-  uttarakhand_rescue_timelines.csv
+    rescue_timelines.csv
                    When 13 of those events happened, when the first responders arrived, how long
                    the operation ran and how many were rescued (event_id joins the events file).
                    Free text from news reports. Reference only.
-  uttarakhand_responder_bases.csv
+    responder_bases.csv
                    15 SDRF/NDRF bases and posts (plus ITBP/Army units that responded first, which
                    are not PRD team types), with coordinates and a status column. Only the SDRF HQ
                    and NDRF 15th Bn are confirmed; the rest are reported or planned. Reference only.
-  uttarakhand_settlements_osm.csv
+    settlements_osm.csv
                    13,975 named towns, villages and hamlets in Uttarakhand with district and
                    lat/lon, from OpenStreetMap (2026-10-08). Population is filled for only 61.
                    (c) OpenStreetMap contributors, ODbL: credit OSM wherever it is used.
-  uttarakhand_landslides_nasa_glc.csv
+    landslides_nasa_glc.csv
                    189 Uttarakhand rainfall-triggered landslides (2007-2016) with lat/lon,
                    extracted from the NASA Global Landslide Catalog export (data.nasa.gov).
                    location_accuracy is the error radius (1km-50km). Cite Kirschbaum et al.
@@ -82,9 +83,9 @@ web/                   React SPA (Vite, Tailwind v4, shadcn/ui, TanStack Query)
   components.json      shadcn CLI config (slate base, CSS variables, @/* alias)
 api/                   Express API (strict TypeScript)
   src/app.ts           Express app: /api/health, 404 and error handler in the D-035 shape
-  src/routes/          empty - HTTP handlers land in Phase 2
-  src/services/        empty - business rules land in Phase 2
-  src/scoring/         empty - pure ranking functions land in Phase 2
+  src/routes/          not created yet - HTTP handlers land in Phase 2
+  src/services/        not created yet - business rules land in Phase 2
+  src/scoring/         not created yet - pure ranking functions land in Phase 2
   src/db/              Drizzle client; schema.ts is an empty placeholder until Phase 2
   drizzle.config.ts    drizzle-kit config (migrations output to api/drizzle/)
 Dockerfile             Builds web/ and api/ into one image. This is the deployed unit.
@@ -100,7 +101,7 @@ package.json           Root manifest for the Neon CLI only - NOT a workspace. Pu
 .github/workflows/ci.yml  Lint, type-check and tests for both packages on every PR
 ```
 
-The `data/disasterIND.csv` dataset is reference material only. Scenario data loaded through the app must be synthetic (`docs/RULES.md` -> Database Rules).
+Everything in `data/` is reference material only. Scenario data loaded through the app must be synthetic (`docs/RULES.md` -> Database Rules).
 
 ## Development Commands
 
