@@ -46,10 +46,24 @@ docs/
 data/
   disasterIND.csv  EM-DAT India disaster records (783 rows), reference data for scenarios
   uttarakhand_flood_landslide_events.csv
-                   13 Uttarakhand flood/landslide events (1998-2025) with place, coordinates,
+                   22 Uttarakhand flood/landslide events (1998-2026) with place, coordinates,
                    casualties, rescue scale and responders, collected from Wikipedia and news
-                   (2026-10-02). Links to EM-DAT by emdat_disno. coord_source=approx_town_centroid
-                   means the point is the nearest town, not the exact site. Reference only.
+                   (2026-10-02, 9 added 2026-10-08). Links to EM-DAT by emdat_disno.
+                   coord_source says how good the point is: approx_town_centroid,
+                   approx_between_places and approx_on_route are estimates; osm_place_node is
+                   the named village's OSM point, not the exact site. Reference only.
+  uttarakhand_rescue_timelines.csv
+                   When 13 of those events happened, when the first responders arrived, how long
+                   the operation ran and how many were rescued (event_id joins the events file).
+                   Free text from news reports. Reference only.
+  uttarakhand_responder_bases.csv
+                   15 SDRF/NDRF bases and posts (plus ITBP/Army units that responded first, which
+                   are not PRD team types), with coordinates and a status column. Only the SDRF HQ
+                   and NDRF 15th Bn are confirmed; the rest are reported or planned. Reference only.
+  uttarakhand_settlements_osm.csv
+                   13,975 named towns, villages and hamlets in Uttarakhand with district and
+                   lat/lon, from OpenStreetMap (2026-10-08). Population is filled for only 61.
+                   (c) OpenStreetMap contributors, ODbL: credit OSM wherever it is used.
   uttarakhand_landslides_nasa_glc.csv
                    189 Uttarakhand rainfall-triggered landslides (2007-2016) with lat/lon,
                    extracted from the NASA Global Landslide Catalog export (data.nasa.gov).

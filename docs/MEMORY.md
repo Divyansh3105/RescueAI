@@ -1,6 +1,6 @@
 # Project Memory
 
-_Last updated: 2026-10-02 (scenario reference data session). Update this after every meaningful session and delete anything that's out of date._
+_Last updated: 2026-10-08 (more scenario reference data). Update this after every meaningful session and delete anything that's out of date._
 
 ## Current Status
 
@@ -48,6 +48,13 @@ Session 2026-10-02 (scenario reference data, owner B's Phase 3 work started earl
 - `data/uttarakhand_landslides_nasa_glc.csv`: 189 Uttarakhand landslides 2007-2016 with lat/lon, from the NASA Global Landslide Catalog export. `location_accuracy` is an error radius, 1-50 km. NASA asks for a citation of Kirschbaum et al. 2010 and 2015 - put it in the paper if this file is used.
 - Left out on purpose: avalanches, Silkyara tunnel, Joshimath subsidence (PRD scope is flood and landslide). Dead ends: ReliefWeb API needs a registered appname, ndrf.gov.in did not load.
 
+Session 2026-10-08 (more scenario reference data; collected with WebSearch/WebFetch, OSM Overpass and Nominatim, not the browser):
+- Events file: 9 events added, now 22 covering 1998-2026: Pithoragarh 2016, Dharchula 2017, Arakot 2019, Munsiyari 2020, Sarkhet 2022 (no deaths), Chirbasa 2024, Tharali 2025, Nandanagar 2025, and Munkatiya May 2026, which was a mass stranding (~10,450 escorted) with no casualties. Existing rows are unchanged. New `coord_source` values are `osm_place_node`, `nominatim_locality`, `approx_between_places` and `approx_on_route`.
+- `data/uttarakhand_rescue_timelines.csv`: event time, first response, operation span and number rescued for 13 events. **Exact arrival times are rare.** The best figures: the Army at Harsil mobilised within 10 min at Dharali; at Munkatiya SDRF was alerted at 21:16 and finished overnight; at Nandanagar a man was pulled out alive after ~16 h under debris. That last one matters if the 60-min Wait cap is questioned.
+- `data/uttarakhand_responder_bases.csv`: 15 rows. **No official SDRF post list was found** (sdrf.uk.gov.in does not resolve). Only the SDRF HQ at Jolly Grant and NDRF 15th Bn Gadarpur (ndrf.gov.in units page) are confirmed. The Sonprayag, Kedarnath, Harsil, Lambagar and Badrinath posts come from news reports, and Rudraprayag, Joshimath, Bageshwar and Champawat from a 2013 plan. ITBP and Army rows are included because they were often first on site, but they are not PRD team types.
+- `data/uttarakhand_settlements_osm.csv`: 13,975 named OSM places in the 13 districts (point-in-polygon on Nominatim district boundaries). **Population is filled for only 61 rows.** Census 2011 village data with coordinates is licensed (Stanford/MIT restricted; Dataful unverified). The ODbL licence requires an OSM credit.
+- Not committed yet when this was written; see git.
+
 ## Currently In Progress
 
 Nothing is half-done. Waiting on the user for the remaining decisions (see Known Problems).
@@ -67,7 +74,7 @@ Nothing is half-done. Waiting on the user for the remaining decisions (see Known
   - D-025 / AD11: future Python ML service. Deliberately left Proposed; it matters only if ML is added.
   - Database backups (a nightly `pg_dump` is recommended but not confirmed), VM provider, domain name.
   - Scenario dataset format, volunteer bottom tab bar, map marker shapes (needed in Phases 3-5). The real-event reference data for scenarios now exists (see 2026-10-02); the loader format does not.
-  - **Neither new data file has per-request trapped/injured counts**, so like `disasterIND.csv` they cannot calibrate the D-047 severity table. They give realistic places, timings and scale for synthetic scenarios; the requests, volunteers and ground truth are still to be built, and must be synthetic.
+  - **None of the reference data files (2026-10-02 or 2026-10-08) has per-request trapped/injured counts**, so like `disasterIND.csv` they cannot calibrate the D-047 severity table. They give realistic places, timings and scale for synthetic scenarios; the requests, volunteers and ground truth are still to be built, and must be synthetic.
 - **From the 2026-09-18 plan review** (already applied to `PLAN.md`, `PRD.md`, `ARCHITECTURE.md`, `DESIGN.md`):
   - Phase 2 (Oct 8 - Nov 3) is the highest-risk phase, not Phase 4. It holds two fixed external dates.
   - Scenario data must vary Wait, Freshness and Reliability, or three formula terms are constant in the evaluation.
@@ -119,7 +126,7 @@ Nothing is half-done. Waiting on the user for the remaining decisions (see Known
 2. **Mentor answers from `MENTOR-REVIEW.md` by Oct 15**, for Paper Part 2 (Oct 20). No answer means adopt the recommendations as `[Provisional]` (see Known Problems).
 3. PRD approval.
 4. **Phase 2 starts Oct 8.** Write its detailed task plan with `superpowers:writing-plans` when it starts.
-5. Scenario data (owner B, in parallel): define the loader format, then build synthetic flood and landslide scenarios on the 2026-10-02 reference files, meeting the PLAN.md Phase 4 checklist (backdated times, varied location ages and histories, 50+ volunteers, graded ground truth).
+5. Scenario data (owner B, in parallel): define the loader format, then build synthetic flood and landslide scenarios on the reference files in `data/` (events, timelines, responder bases, OSM settlements for placing citizens and volunteers), meeting the PLAN.md Phase 4 checklist (backdated times, varied location ages and histories, 50+ volunteers, graded ground truth).
 6. Render: set the health check path to `/api/health` in the dashboard - `render.yaml` sets it but Render only reads that file for Blueprint-created services (D-046). **Warm the service before any SM1 timing run in Phase 6** - a free instance sleeps after ~15 min and cold-starts in ~50 s, which would silently inflate the median (D-044).
 
 ## Things to Be Careful About
