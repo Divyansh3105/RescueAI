@@ -98,7 +98,8 @@ render.yaml               Render service definition
 neon.ts                   Neon branch policy, applied with `neon deploy`
 .github/workflows/ci.yml  lint, type-check and tests on every pull request
 docs/                     PRD, architecture, design, rules, decisions, plan
-data/disasterIND.csv      EM-DAT India disaster records, reference data for scenarios
+data/                     reference data for scenarios: EM-DAT India records,
+                          Uttarakhand events, responder bases, OSM settlements
 ```
 
 ## Documentation
