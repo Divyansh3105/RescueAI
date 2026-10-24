@@ -16,3 +16,8 @@ export async function pingDb(): Promise<boolean> {
     return false;
   }
 }
+
+/** Closes the pool so a one-off script (seed, test setup) can exit. */
+export async function closeDb(): Promise<void> {
+  await sql.end();
+}
