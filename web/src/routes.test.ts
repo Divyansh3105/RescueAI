@@ -17,7 +17,14 @@ describe('safeNext', () => {
   });
 
   it('rejects protocol-relative and absolute URLs', () => {
-    for (const next of ['//evil.com', 'https://evil.com', '/\\evil.com', 'javascript:alert(1)']) {
+    for (const next of [
+      '//evil.com',
+      'https://evil.com',
+      '/\\evil.com',
+      'javascript:alert(1)',
+      '/\t/evil.com',
+      '/\n/evil.com',
+    ]) {
       expect(safeNext(next, 'onsite_commander')).toBe('/commander/queue');
     }
   });

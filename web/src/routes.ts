@@ -39,11 +39,15 @@ export function homeFor(role: Role): string {
  * (another site, another role's area, the login page itself) falls back to the role's home.
  */
 export function safeNext(next: string | null, role: Role): string {
-  if (!next?.startsWith('/') || next.startsWith('//') || next.startsWith('/\\')) {
+  if (!next?.startsWith('/')) return homeFor(role);
+  // Let the URL parser decide, as the browser will: it strips tabs and newlines and reads
+  // "/\" as "//", so "/\t/evil.com" is another site. Anything off this base is rejected.
+  const base = 'http://rescueai.invalid';
+  const url = new URL(next, base);
+  if (url.origin !== base) return homeFor(role);
+  const roles = rolesFor(url.pathname);
+  if (url.pathname === '/login' || (roles !== 'public' && !roles.includes(role))) {
     return homeFor(role);
   }
-  const path = next.split(/[?#]/)[0] ?? '';
-  const roles = rolesFor(path);
-  if (path === '/login' || (roles !== 'public' && !roles.includes(role))) return homeFor(role);
-  return next;
+  return url.pathname + url.search + url.hash;
 }

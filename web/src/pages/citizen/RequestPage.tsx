@@ -7,11 +7,12 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { SampleDataNote } from '@/components/SampleDataNote';
+import type { Dict } from '@/i18n/dictionaries';
 import { useLang } from '@/i18n/use-lang';
 import { CitizenShell } from '@/shells/CitizenShell';
 
 type Coords = { lat: number; lon: number; accuracy: number };
-type Errors = Partial<Record<'location' | 'hazard' | 'phone', string>>;
+type Errors = Partial<Record<'location' | 'hazard' | 'phone', keyof Dict>>;
 
 const flagKeys = ['children', 'elderly', 'injuredFlag', 'disability'] as const;
 
@@ -37,9 +38,9 @@ export function RequestPage() {
 
   function validate(next = { coords, hazard, phone }): Errors {
     const e: Errors = {};
-    if (!next.coords) e.location = t.locationMissing;
-    if (!next.hazard) e.hazard = t.hazardMissing;
-    if (!/^[6-9]\d{9}$/.test(next.phone.replace(/\s/g, ''))) e.phone = t.phoneBad;
+    if (!next.coords) e.location = 'locationMissing';
+    if (!next.hazard) e.hazard = 'hazardMissing';
+    if (!/^[6-9]\d{9}$/.test(next.phone.replace(/\s/g, ''))) e.phone = 'phoneBad';
     return e;
   }
 
@@ -113,7 +114,7 @@ export function RequestPage() {
   const errText = (id: keyof Errors) =>
     errors[id] && (
       <p id={`${id}-error`} className="text-sm text-red-700">
-        {errors[id]}
+        {t[errors[id]!]}
       </p>
     );
 

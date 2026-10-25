@@ -144,4 +144,15 @@ describe('auth', () => {
     expect(body(wrongRole).error.code).toBe('forbidden');
     expect((await request(probe).get('/admin-only')).status).toBe(401);
   });
+
+  it('a malformed sid cookie counts as signed out, and login still works', async () => {
+    await makeUser();
+    const me = await request(app).get('/api/auth/me').set('Cookie', 'sid=%E0');
+    expect(me.status).toBe(401);
+    const res = await request(app)
+      .post('/api/auth/login')
+      .set('Cookie', 'sid=%E0')
+      .send({ phone: '9000000001', password: PASSWORD });
+    expect(res.status).toBe(200);
+  });
 });

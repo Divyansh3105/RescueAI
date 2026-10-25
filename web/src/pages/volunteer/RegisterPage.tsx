@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { skillName } from '@/i18n/dictionaries';
+import { skillName, type Dict } from '@/i18n/dictionaries';
 import { useLang } from '@/i18n/use-lang';
 import { normalizePhone } from '@/lib/phone';
 import type { Skill } from '@/sample/data';
@@ -21,7 +21,7 @@ const SKILLS: Skill[] = [
   'Local Language Proficiency',
 ];
 
-type Errors = Partial<Record<'name' | 'phone' | 'password', string>>;
+type Errors = Partial<Record<'name' | 'phone' | 'password', keyof Dict>>;
 
 /** Volunteer self-registration (PRD F2). Sample only: nothing is sent yet. */
 export function RegisterPage() {
@@ -39,9 +39,9 @@ export function RegisterPage() {
 
   function validate(x = v): Errors {
     const e: Errors = {};
-    if (!x.name.trim()) e.name = t.nameMissing;
-    if (!normalizePhone(x.phone)) e.phone = t.phoneBad;
-    if (x.password.length < 8) e.password = t.passwordShort;
+    if (!x.name.trim()) e.name = 'nameMissing';
+    if (!normalizePhone(x.phone)) e.phone = 'phoneBad';
+    if (x.password.length < 8) e.password = 'passwordShort';
     return e;
   }
 
@@ -92,7 +92,7 @@ export function RegisterPage() {
         />
         {errors[key] && (
           <p id={`${key}-error`} className="text-destructive text-sm">
-            {errors[key]}
+            {t[errors[key]!]}
           </p>
         )}
       </div>

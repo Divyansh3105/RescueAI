@@ -6,13 +6,14 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import type { Dict } from '@/i18n/dictionaries';
 import { useLang } from '@/i18n/use-lang';
 import { ApiError } from '@/lib/api';
 import { normalizePhone } from '@/lib/phone';
 import { navigate, usePath } from '@/router';
 import { safeNext } from '@/routes';
 
-type Errors = Partial<Record<'phone' | 'password', string>>;
+type Errors = Partial<Record<'phone' | 'password', keyof Dict>>;
 
 /** Sign-in for volunteers, commanders and the Admin (PRD F2, D-037). */
 export function LoginPage() {
@@ -43,8 +44,8 @@ export function LoginPage() {
 
   function validate(v = { phone, password }): Errors {
     const e: Errors = {};
-    if (!normalizePhone(v.phone)) e.phone = t.phoneBad;
-    if (v.password.length < 8) e.password = t.passwordShort;
+    if (!normalizePhone(v.phone)) e.phone = 'phoneBad';
+    if (v.password.length < 8) e.password = 'passwordShort';
     return e;
   }
 
@@ -114,7 +115,7 @@ export function LoginPage() {
             />
             {errors.phone && (
               <p id="phone-error" className="text-destructive text-sm">
-                {errors.phone}
+                {t[errors.phone]}
               </p>
             )}
           </div>
@@ -150,7 +151,7 @@ export function LoginPage() {
             </div>
             {errors.password && (
               <p id="password-error" className="text-destructive text-sm">
-                {errors.password}
+                {t[errors.password]}
               </p>
             )}
           </div>

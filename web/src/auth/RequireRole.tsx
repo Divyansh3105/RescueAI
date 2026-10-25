@@ -2,6 +2,7 @@ import { useEffect, type ReactNode } from 'react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { PageSpinner } from '@/components/PageSpinner';
+import { useLang } from '@/i18n/use-lang';
 import { navigate, usePath } from '@/router';
 import { homeFor, type Role } from '@/routes';
 import { useSession } from './session';
@@ -12,6 +13,8 @@ import { useSession } from './session';
  */
 export function RequireRole({ roles, children }: { roles: Role[]; children: ReactNode }) {
   const { user, isLoading, error, refetch } = useSession();
+  // Volunteers reach this too, so it follows the chosen language (AC24).
+  const [, , t] = useLang();
   const { path, search } = usePath();
   const query = search.toString();
 
@@ -30,11 +33,11 @@ export function RequireRole({ roles, children }: { roles: Role[]; children: Reac
     return (
       <main className="mx-auto max-w-lg p-4">
         <Alert variant="destructive">
-          <AlertTitle>Could not reach RescueAI</AlertTitle>
+          <AlertTitle>{t.cannotReach}</AlertTitle>
           <AlertDescription>
-            Check your connection and try again.
+            {t.checkConnection}
             <Button variant="outline" className="mt-2" onClick={() => void refetch()}>
-              Try again
+              {t.tryAgain}
             </Button>
           </AlertDescription>
         </Alert>

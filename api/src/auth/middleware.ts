@@ -15,7 +15,12 @@ export const SESSION_COOKIE = 'sid';
 export function sessionToken(req: Request): string | undefined {
   for (const part of req.headers.cookie?.split(';') ?? []) {
     const [name, ...rest] = part.trim().split('=');
-    if (name === SESSION_COOKIE) return decodeURIComponent(rest.join('='));
+    if (name !== SESSION_COOKIE) continue;
+    try {
+      return decodeURIComponent(rest.join('='));
+    } catch {
+      return undefined; // A mangled cookie is no session, not a 500 on every request.
+    }
   }
   return undefined;
 }
