@@ -3,7 +3,8 @@ import postgres from 'postgres';
 import { env } from '../env.js';
 import * as schema from './schema.js';
 
-const sql = postgres(env.databaseUrl, { connect_timeout: 5 });
+// onnotice: the migrator's "already exists, skipping" notices are noise on every boot.
+const sql = postgres(env.databaseUrl, { connect_timeout: 5, onnotice: () => {} });
 
 export const db = drizzle(sql, { schema });
 

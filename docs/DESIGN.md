@@ -108,7 +108,8 @@ The layout has one shell per role (roles and access are defined in PRD AC18):
   - Sections: Queue, Map, Volunteers, Teams, Audit Log.
   - Office commanders get an **Awaiting approval** filter on the Queue rather than a separate screen (D-042): the same split view, with the recommendation panel read-only and the ApprovalBar at the bottom. It shows the same RecommendationCards and ScoreBreakdowns the on-site commander saw.
   - **Queue uses a split view on `lg`:** the prioritized list on the left, the selected request's detail and recommendations on the right. Below `lg`, the detail opens as its own page.
-- **Admin:** the commander shell, plus Commanders, Weights, Data (scenario load and CSV export), and Audit Log.
+- **Admin:** the commander shell with its own sections: Commanders, Users (password reset, AC25), Weights, Data (scenario load and CSV export), and Audit Log. **Not** Queue, Map, Volunteers or Teams: those screens carry citizen phone numbers and volunteer locations, which the Admin must never see (AC18). Decided 2026-10-26 with the frontend plan.
+- **Sign-in** (`/login`): one page for volunteers, commanders and the Admin. It is reached by volunteers, so it follows the citizen/volunteer rules: English / हिन्दी switch, `text-base`, `lg` buttons.
 - **Map:** fills the content area. Its legend is always visible. Everything shown on the map is also available as a list (the queue, volunteers, teams).
   - **Marker shapes: Proposed** (used by the Progress Report 1 prototype, not yet confirmed): request = filled circle in the band color with the band letter (C / H / N), available volunteer = white square with "V", team base = dark diamond with "T". The selected request shows its 25 km proximity radius as a dashed circle.
 

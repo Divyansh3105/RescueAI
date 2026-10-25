@@ -1243,3 +1243,48 @@ Self-service recovery stays out of scope. If the project ever collected an email
 `PRD.md`: the Admin row in Target Users, a note under F2, and **AC25**. The PRD now has **25** acceptance criteria, so `AGENTS.md`, `RULES.md`, `README.md` and `PLAN.md` were updated from AC1-AC24. `TESTING.md` allocates AC25 to integration tests. `PLAN.md` Phase 4 gains the build item.
 ### Alternatives Rejected
 A stated limitation (defensible, but leaves a live failure mode across two graded exams); commander-side reset (two flows, busiest role); email or SMS recovery (the MVP collects no email and has no SMS, and either would need a new external service and the owner's approval).
+
+## D-052 Login implementation: hashed session tokens, an in-house router, demo accounts by seed
+
+### Date
+2026-10-26
+### Status
+Accepted (proposed in `docs/superpowers/plans/2026-10-26-frontend-and-login.md`, approved by the owner).
+### Context
+Login was the first feature built for real, ahead of the rest of Phase 2/3, together with every screen of the SPA on sample data. Four implementation choices were not settled by AD9 / D-037.
+### Options Considered
+1. Session storage: the raw token in the `sessions` row, or only its SHA-256.
+2. Client routing: React Router (a new dependency, needs approval) or a small History-API router.
+3. bcrypt package: `bcrypt` (native) or `bcryptjs` (pure JS).
+4. Demo accounts: a migration with fixed passwords, or a seed script with the password from the environment.
+### Decision
+1. The cookie holds 32 random bytes (base64url); the row holds only `sha256(token)`.
+2. `web/src/router.ts` (`usePath`, `navigate`) and `web/src/components/Link.tsx`, about 40 lines in total.
+3. `bcryptjs`, cost 12.
+4. `api/src/db/seed.ts` (`npm run db:seed`), four accounts on synthetic phones 9000000001-4, password from `SEED_PASSWORD`.
+### Reasoning
+1. A leaked database or backup can't be replayed as logins; the hash costs one line.
+2. The app needs a path, a query string and links. Nothing else in a router library is used.
+3. Same algorithm as the Decided bcrypt; no native build in the `node:24-alpine` image.
+4. No password ever lands in git, and the same script seeds local, CI-like and Neon databases.
+### Trade-offs
+The in-house router has no nested routes, loaders or scroll restoration; replace it if those are ever needed. Login has no rate limit yet: nothing decided a number (D-036 covers only the public request form), and bcrypt cost 12 slows guessing.
+### Consequences
+`AGENTS.md`, `ARCHITECTURE.md` and `TESTING.md` updated. Supersedes nothing.
+
+## D-053 Migrations run at API start-up
+
+### Date
+2026-10-26
+### Status
+Accepted.
+### Context
+Render's free tier gives no shell or release command, so `drizzle-kit migrate` (a dev dependency) can't run on deploy.
+### Decision
+`api/src/index.ts` calls `runMigrations()` (`drizzle-orm`'s migrator on `api/drizzle/`) before listening. The Dockerfile copies `api/drizzle/` into the image. The seed script and the test global setup call the same function.
+### Reasoning
+One code path applies migrations everywhere, and a deploy can't start on an old schema.
+### Trade-offs
+A failing migration stops the service from starting; that is the safe failure. With one instance there is no race between instances.
+### Consequences
+`ARCHITECTURE.md` -> Deployment notes it. `npm run db:migrate` stays for local use.

@@ -1,6 +1,6 @@
 # Testing Strategy
 
-> **State (2026-09-18):** Vitest, ESLint, Prettier and the CI workflow exist in both `web/` and `api/`, each with one trivial passing test. **The integration-test harness does not exist yet** - no Drizzle schema, no migrations, no Docker PostgreSQL test database, no supertest suite. Those land in Phase 2. Anything still marked **Not established** must be decided and written here before it is relied on. Update this file whenever the testing strategy or tooling changes.
+> **State (2026-10-26):** Vitest, ESLint, Prettier and the CI workflow exist in both `web/` and `api/`. **The integration-test harness exists** (since the login work): `api/vitest.config.ts` runs `src/test/global-setup.ts`, which applies the drizzle-kit migrations to the database in `DATABASE_URL` once per run; test files run one at a time and call `truncateAll()` (`src/test/reset.ts`) in `beforeEach`. The auth routes have supertest integration tests against real PostgreSQL. **Not yet:** the separate privileged truncate role (D-038) - `truncateAll()` still runs as the app role, which is fine until the audit table exists and must change in the same PR that adds it. Anything still marked **Not established** must be decided and written here before it is relied on. Update this file whenever the testing strategy or tooling changes.
 
 This is the canonical testing document. `RULES.md` and `AGENTS.md` point here.
 
@@ -40,7 +40,17 @@ This is the canonical testing document. `RULES.md` and `AGENTS.md` point here.
 | `npm run typecheck` | TypeScript, no emit |
 | `npm run format:check` | Prettier |
 
-There is no integration-test command yet, because there is no schema to migrate. Add it here when the Phase 2 harness lands.
+**`api/` tests need a PostgreSQL database in `DATABASE_URL`**, and they empty it, so never point them at the development or Neon database. Locally:
+
+```bash
+docker run -d --name rescueai-testdb -e POSTGRES_USER=rescueai -e POSTGRES_PASSWORD=rescueai -e POSTGRES_DB=rescueai_test -p 5433:5432 postgres:17-alpine
+```
+
+```bash
+DATABASE_URL=postgres://rescueai:rescueai@localhost:5433/rescueai_test npm test
+```
+
+CI does the same with a Postgres service container (`.github/workflows/ci.yml`).
 
 ## Unit Testing
 
@@ -143,7 +153,7 @@ Before a change is complete, run all of these and report the real output:
    - A skipped or focused test (`.skip`, `.only`) doesn't count as passing.
 4. **Manual checks:** if UI changed, the manual checks listed under End-to-End Testing.
 
-The commands for 1–3 are in the Test Stack table above. Run each in both `web/` and `api/`. Integration tests are not part of check 3 yet; they join it in Phase 2.
+The commands for 1–3 are in the Test Stack table above. Run each in both `web/` and `api/`. Check 3 in `api/` includes the integration tests, so it needs the test database above.
 
 ## CI Testing
 

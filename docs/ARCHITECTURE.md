@@ -1,6 +1,6 @@
 # Architecture
 
-> **State (2026-09-18): the shape exists, the behavior does not.** The deployable pieces below are real and run: one image holding the Express API with the built SPA inside it, plus PostgreSQL. Verified on 2026-09-18 serving the SPA, `/api/health` and the SPA fallback route from a single origin. Everything that makes RescueAI *work* is still **planned**: no database tables, no routes beyond health, no scoring, no auth. Sections about the data model, API areas, data flow and security describe what will be built in Phases 2-5 (`PLAN.md`).
+> **State (2026-10-26): login works; everything else is planned.** The deployable pieces below are real and run: one image holding the Express API with the built SPA inside it, plus PostgreSQL. **Authentication is built** (`users` and `sessions` tables, `/api/auth/login|logout|me`, role guard), and the SPA has every MVP screen for all five roles, but every screen except sign-in shows **sample data** and calls no API. No scoring, no requests, no decisions, no audit table yet. Sections about the rest of the data model, API areas, data flow and security describe what will be built in Phases 2-5 (`PLAN.md`).
 >
 > Each decision is labeled:
 > - **Decided:** explicitly chosen by the product owner.
@@ -79,21 +79,30 @@ Future components (not part of the MVP; see PRD "Future Features") would sit beh
 
 ## Repository Structure
 
-**Existing** (the layout below was created on 2026-09-18; the `routes/`, `services/` and `scoring/` directories are not created yet; Phase 2 adds them):
+**Existing** (created 2026-09-18, auth and screens added 2026-10-26; `services/` and `scoring/` are not created yet):
 ```
 README.md  AGENTS.md  CLAUDE.md                     (repository root)
 docs/                PRD, DESIGN, ARCHITECTURE, RULES, TESTING, PLAN, MEMORY, DECISIONS
 data/                disasterIND.csv and uttarakhand/ (reference only, never loaded)
 web/                 React SPA (all roles, route-based role shells per DESIGN.md)
   src/index.css      Design tokens from DESIGN.md
-  src/components/ui/ shadcn/ui components (shadcn CLI)
-  src/lib/           small pure helpers
+  src/App.tsx        path -> page table; src/routes.ts says which role may open which path
+  src/router.ts      ~40-line History-API router (usePath, navigate); Link in components/ (D-052)
+  src/auth/          useSession / useLogin / useLogout (TanStack Query) and the RequireRole guard
+  src/shells/        CitizenShell, VolunteerShell, CommanderShell (commanders and Admin)
+  src/pages/         one component per screen: login, citizen, volunteer, commander, admin
+  src/i18n/          en/hi dictionaries and useLang (citizen, volunteer and sign-in screens)
+  src/components/    domain composites (PriorityBadge, ScoreBreakdown, ...); ui/ is shadcn CLI output
+  src/sample/        synthetic data behind every screen that is not connected yet
+  src/lib/           small pure helpers (API client, phone rule, cn)
 api/                 Express API (TypeScript)
-  src/app.ts         the Express app: /api/health, 404 and error handler
-  src/routes/        HTTP handlers: auth middleware, validation, response shaping (Phase 2)
+  src/app.ts         the Express app: /api/health, session loading, /api/auth, 404 and error handler
+  src/auth/          phone rule, session service (bcrypt, hashed tokens), loadSession / requireRole
+  src/routes/        HTTP handlers: validation, response shaping (auth.ts exists)
   src/services/      Business rules: requests, volunteers, teams, recommendations, decisions, assignments, audit, admin (Phase 2)
   src/scoring/       Pure functions for Eq. 4.1 and 4.2 and the severity rule, no I/O (Phase 2)
-  src/db/            Drizzle client and schema; migrations output to api/drizzle/
+  src/db/            Drizzle client, schema (users, sessions), migrate.ts, seed.ts
+  drizzle/           generated migrations, applied at start-up (D-053)
 docker-compose.yml   app + db, building the same Dockerfile Render deploys
 Dockerfile           Builds the SPA and the API into one image (the deployed unit)
 render.yaml          Render service definition; DATABASE_URL is set in the dashboard
@@ -282,8 +291,9 @@ The rules are defined in `AGENTS.md` → Security Requirements. This section cov
 - **Authentication:**
   - Server-side sessions stored in PostgreSQL, referenced by an httpOnly, Secure, SameSite cookie. Nothing token-like is stored in JavaScript.
   - Users log in with a phone number and password. Passwords are at least 8 characters, and a session lasts 12 hours (D-037).
-  - Deactivating a commander deletes their sessions, so access is revoked immediately.
-- **Passwords:** hashed with bcrypt.
+  - Deactivating a commander deletes their sessions, so access is revoked immediately. (Built: a session of a deactivated user is already rejected on every request.)
+  - **Built 2026-10-26 (D-052):** cookie `sid` (HttpOnly, SameSite=Lax, Secure in production, 12 h, fixed from login). The cookie holds 32 random bytes; the `sessions` row stores only its SHA-256. Wrong phone, wrong password and a deactivated account return the same 401 `invalid_credentials`, and an unknown phone is still compared against a dummy hash so timing doesn't reveal which phones exist. Login has no rate limit yet (not decided).
+- **Passwords:** hashed with bcrypt (`bcryptjs`, cost 12).
 - **Authorization:** role-check middleware on every non-public route, plus ownership checks (for example, a volunteer can reach only their own offers).
 - **Personal data:** citizen phone numbers and volunteer coordinates are included only in commander responses. Volunteer and Admin responses, audit snapshots and CSV exports never contain them. A volunteer still receives their own location.
 - **Input:** zod validation on every route, and parameterized SQL only.
@@ -306,6 +316,7 @@ flowchart LR
 - **Neon, not Render PostgreSQL.** Render's free database is deleted after 30 days; Neon's free tier persists. It sits outside the VM boundary the earlier design assumed, so `DATABASE_URL` uses TLS. Project `super-hill-50061651`, branch `production`, linked 2026-09-18; the branch policy is `neon.ts`, applied with `neon deploy` (D-045). `DATABASE_URL` uses Neon's **direct (unpooled)** endpoint, not the pooled one: the pooled endpoint is PgBouncer in transaction mode, which breaks `postgres.js` prepared statements (D-046).
 - **The free service sleeps after ~15 minutes idle**, with a cold start of roughly 50 seconds. This is a measurement hazard, not just a demo annoyance: the SM1 timing runs in Phase 6 must warm the service first, or the median will include a cold start.
 - **`docker-compose.yml` builds the same `Dockerfile`**, so local and deployed behavior match. It serves `http://localhost:3000`, which browsers treat as a secure context, so geolocation and PWA install work locally without TLS. Real-phone checks (AC21, AC24) use the deployed HTTPS URL.
+- **Migrations run at start-up** (D-053): `src/index.ts` applies `api/drizzle/` before listening, so a Render deploy needs no shell. Demo accounts are added with `npm run db:seed` (or `node dist/db/seed.js` inside the image) and `SEED_PASSWORD`.
 - CI: GitHub Actions runs lint, type-check and the test suite on every pull request (D-039), defined in `.github/workflows/ci.yml`. First green run 2026-09-18. Deployment is Render's automatic build on push to `main`.
 - Not established: the database backup strategy (Neon has its own retention; a scheduled `pg_dump` is still recommended) and the domain name.
 
