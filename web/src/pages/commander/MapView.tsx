@@ -2,11 +2,11 @@ import { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Button } from '@/components/ui/button';
-import { band, priority, requests, teams, volunteers, type Band } from './data';
-import { PriorityBadge, StatusBadge, type Status } from './parts';
+import { band, priority, requests, teams, volunteers, type Band } from '@/sample/data';
+import { PriorityBadge, StatusBadge, type Status } from '@/components/domain';
 
 /*
- * Marker shapes are a prototype choice (docs/DESIGN.md lists them as Not established).
+ * Marker shapes are Proposed in docs/DESIGN.md, not yet confirmed.
  * Every marker differs by shape and letter as well as color, so color is never the only signal:
  *   request = circle with the band letter, volunteer = small square "V", team base = diamond "T".
  */

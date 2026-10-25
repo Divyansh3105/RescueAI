@@ -1,34 +1,6 @@
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
-import type { Band, Recommendation, Scored } from './data';
-import type { Lang } from './i18n';
-
-export function LangSwitch({ lang, setLang }: { lang: Lang; setLang: (l: Lang) => void }) {
-  return (
-    <div role="group" aria-label="Language" className="flex text-sm">
-      {(
-        [
-          ['en', 'English'],
-          ['hi', 'हिन्दी'],
-        ] as const
-      ).map(([key, label]) => (
-        <button
-          key={key}
-          type="button"
-          lang={key}
-          aria-pressed={lang === key}
-          onClick={() => setLang(key)}
-          className={cn(
-            'focus-visible:ring-ring min-h-11 px-3 focus-visible:ring-2 focus-visible:outline-none',
-            lang === key ? 'font-semibold underline underline-offset-4' : 'text-muted-foreground',
-          )}
-        >
-          {label}
-        </button>
-      ))}
-    </div>
-  );
-}
+import type { Band, Recommendation, Scored } from '@/sample/data';
 
 // docs/DESIGN.md -> Component Patterns. Color never carries meaning alone: every badge has text.
 
@@ -59,11 +31,13 @@ export type Status =
   | 'Sent back'
   | 'Offered'
   | 'Accepted'
-  | 'Completed';
+  | 'Completed'
+  | 'Declined';
 
 const waiting: Status[] = ['Pending', 'Awaiting approval', 'Sent back', 'Offered'];
 
-export function StatusBadge({ status }: { status: Status }) {
+/** `label` overrides the text, for translated volunteer screens; the color follows `status`. */
+export function StatusBadge({ status, label }: { status: Status; label?: string }) {
   const tone = waiting.includes(status)
     ? 'bg-amber-50 text-amber-800'
     : status === 'Approved' || status === 'Completed'
@@ -76,12 +50,21 @@ export function StatusBadge({ status }: { status: Status }) {
         tone,
       )}
     >
-      {status}
+      {label ?? status}
     </span>
   );
 }
 
-export function SkillChip({ skill, verified }: { skill: string; verified: boolean }) {
+export function SkillChip({
+  skill,
+  verified,
+  stateText = verified ? '(verified)' : '(unverified)',
+}: {
+  skill: string;
+  verified: boolean;
+  /** Screen-reader state, translated on volunteer screens. */
+  stateText?: string;
+}) {
   return (
     <span
       className={cn(
@@ -90,7 +73,7 @@ export function SkillChip({ skill, verified }: { skill: string; verified: boolea
       )}
     >
       {verified ? '✓' : '?'} {skill}
-      <span className="sr-only">{verified ? '(verified)' : '(unverified)'}</span>
+      <span className="sr-only">{stateText}</span>
     </span>
   );
 }

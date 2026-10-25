@@ -1,4 +1,4 @@
-import { useSyncExternalStore } from 'react';
+import { useEffect, useSyncExternalStore } from 'react';
 import { dict, type Lang } from './dictionaries';
 
 // The chosen language, shared by every citizen, volunteer and sign-in screen. Remembered
@@ -36,5 +36,9 @@ function subscribe(f: () => void) {
 /** [lang, setLang, t] where t is that language's dictionary. */
 export function useLang() {
   const lang = useSyncExternalStore(subscribe, () => current);
+  // English-only commander screens set <html lang="en">; put it back on arrival here.
+  useEffect(() => {
+    document.documentElement.lang = lang;
+  }, [lang]);
   return [lang, setLang, dict[lang]] as const;
 }

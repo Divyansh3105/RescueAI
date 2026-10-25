@@ -1,36 +1,52 @@
+import type { ComponentType } from 'react';
 import { RequireRole } from '@/auth/RequireRole';
-import { useLogout, useSession } from '@/auth/session';
-import { Button } from '@/components/ui/button';
+import { AuditPage } from '@/pages/commander/AuditPage';
+import { MapPage } from '@/pages/commander/MapPage';
+import { QueuePage } from '@/pages/commander/QueuePage';
+import { TeamsPage } from '@/pages/commander/TeamsPage';
+import { VolunteersPage } from '@/pages/commander/VolunteersPage';
+import { CommandersPage } from '@/pages/admin/CommandersPage';
+import { DataPage } from '@/pages/admin/DataPage';
+import { UsersPage } from '@/pages/admin/UsersPage';
+import { WeightsPage } from '@/pages/admin/WeightsPage';
+import { RequestPage } from '@/pages/citizen/RequestPage';
 import { LoginPage } from '@/pages/login/LoginPage';
+import { NotFoundPage } from '@/pages/NotFoundPage';
+import { HistoryPage } from '@/pages/volunteer/HistoryPage';
+import { HomePage } from '@/pages/volunteer/HomePage';
+import { ProfilePage } from '@/pages/volunteer/ProfilePage';
+import { RegisterPage } from '@/pages/volunteer/RegisterPage';
 import { usePath } from '@/router';
-import { rolesFor, roleLabel } from '@/routes';
-import { CitizenForm } from './prototype/CitizenForm';
+import { rolesFor } from '@/routes';
 
-// Temporary until the shells land (plan Task 6): proves the sign-in flow end to end.
-function SignedInPlaceholder() {
-  const { user } = useSession();
-  const logout = useLogout();
-  return (
-    <main id="content" className="mx-auto max-w-lg space-y-4 p-4">
-      <h1 className="text-2xl font-semibold">Signed in</h1>
-      <p>
-        {user?.name} · {user && roleLabel[user.role]}
-      </p>
-      <Button variant="outline" onClick={() => logout.mutate()}>
-        Sign out
-      </Button>
-    </main>
-  );
-}
+// Who may open each path is decided by routes.ts (rolesFor); this only maps paths to pages.
+const pages: Record<string, ComponentType> = {
+  '/': RequestPage,
+  '/login': LoginPage,
+  '/register': RegisterPage,
+  '/volunteer': HomePage,
+  '/volunteer/profile': ProfilePage,
+  '/volunteer/history': HistoryPage,
+  '/commander/queue': QueuePage,
+  '/commander/map': MapPage,
+  '/commander/volunteers': VolunteersPage,
+  '/commander/teams': TeamsPage,
+  '/commander/audit': AuditPage,
+  '/admin/commanders': CommandersPage,
+  '/admin/users': UsersPage,
+  '/admin/weights': WeightsPage,
+  '/admin/data': DataPage,
+  '/admin/audit': AuditPage,
+};
 
 export default function App() {
   const { path } = usePath();
-  if (path === '/login') return <LoginPage />;
+  const Page = pages[path] ?? NotFoundPage;
   const roles = rolesFor(path);
-  if (roles === 'public') return <CitizenForm />;
+  if (roles === 'public') return <Page />;
   return (
     <RequireRole roles={roles}>
-      <SignedInPlaceholder />
+      <Page />
     </RequireRole>
   );
 }
