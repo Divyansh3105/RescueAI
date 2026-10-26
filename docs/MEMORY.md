@@ -4,7 +4,7 @@ _Last updated: 2026-10-26 (frontend screens and working login). Update this afte
 
 ## Current Status
 
-- **Login works; every screen exists on sample data (2026-10-26, branch `feat/frontend-and-login`, not merged).** See the 2026-10-26 entry below.
+- **Login works; every screen exists on sample data (merged to `main` 2026-10-26 as PR #5).** Deployed and checked live: `/api/health` ok with the database up, `/api/auth/login` answers from the new `users` table (migrations ran on Neon), SPA deep links load. See the 2026-10-26 entry below.
 - **Before that: scaffolded, no features.** It is a git repository now, pushed to <https://github.com/Divyansh3105/RescueAI> on `main`, with CI green. `web/` and `api/` exist, build, lint, type-check and each pass one trivial test. **Deployed and live at <https://rescueai-70mu.onrender.com>** (Render free, Singapore, auto-deploy from `main`), reading from Neon. `docker compose up` builds the same image locally and serves it from `http://localhost:3000` - verified on 2026-09-18: health returned `{"status":"ok","db":"up"}`, the SPA rendered it in a browser, a deep route fell back to `index.html`, and an unknown `/api/*` route returned the D-035 error shape.
 - **Only login is implemented on the server.** Tables: `users`, `sessions`. Routes: `/api/health`, `/api/auth/login|logout|me`. No requests, scoring, decisions or audit table yet.
 - The documentation set: `PRD.md`, `AGENTS.md` (the entry point), `DESIGN.md`, `ARCHITECTURE.md`, `RULES.md`, `DECISIONS.md`, `TESTING.md`, `PLAN.md`, `MEMORY.md`, and `CLAUDE.md` (which just imports AGENTS.md).
@@ -62,7 +62,7 @@ Session 2026-10-08 (file structure):
 
 Session 2026-10-26 (frontend + login, plan `docs/superpowers/plans/2026-10-26-frontend-and-login.md`):
 - **API:** `users` + `sessions` (Drizzle, migration 0000, applied at start-up - D-053), bcryptjs cost 12, SHA-256-hashed session tokens, `sid` cookie (HttpOnly, SameSite=Lax, Secure in prod, 12 h), same 401 for wrong phone / wrong password / deactivated, `loadSession` + `requireRole`. 16 API tests, 11 of them integration tests against real PostgreSQL (D-052).
-- **Seed:** `SEED_PASSWORD=... npm run db:seed` creates four demo accounts on phones 9000000001-4 (volunteer, on-site, office, admin). **Neon has not been seeded** - the owner does that by hand; until then the deployed site has no account that can sign in.
+- **Seed:** `SEED_PASSWORD=... npm run db:seed` creates four demo accounts on phones 9000000001-4 (volunteer, on-site, office, admin). **Neon was seeded by the owner on 2026-10-26** with a password of their choosing (not recorded anywhere): a count of the live `users` table showed one active account per role. The deployed site can be signed into with phones 9000000001-4.
 - **Web:** the prototype switcher is gone. In-house router (no React Router - D-052), `RequireRole` guard, sign-in page in en/hi, three shells, 16 routes for five roles. Every screen except sign-in shows `web/src/sample/data.ts` and a "Sample data - not connected yet" note. The office commander's queue starts with one sample selection awaiting approval (RQ-4821).
 - **Admin sections** are Commanders, Users (password reset), Weights, Data, Audit Log - no Queue/Map (AC18). Recorded in DESIGN.md.
 - **Not used on purpose:** GSAP, Lenis, React Bits (the owner's global UI default). DESIGN.md forbids decorative motion and a second component library; the owner approved the plan that said so.
@@ -70,7 +70,7 @@ Session 2026-10-26 (frontend + login, plan `docs/superpowers/plans/2026-10-26-fr
 
 ## Currently In Progress
 
-- `feat/frontend-and-login` is committed locally, **not pushed and no PR**. It was branched off `chore/file-structure` (commit c013e1f, also unmerged), so merge that first or the PR carries it.
+- Nothing is half-done. The login and screens work is merged (PR #5, merge commit da3ebc8; its 8 commits are dated Oct 24-25). Neon is seeded, so there is nothing left over from the login work.
 
 ## Known Problems
 
@@ -136,7 +136,7 @@ Session 2026-10-26 (frontend + login, plan `docs/superpowers/plans/2026-10-26-fr
 
 ## Next Steps
 
-0. **Review and merge `feat/frontend-and-login`** (after `chore/file-structure`), then seed Neon with `SEED_PASSWORD` so the deployed site can be signed into. Then connect screens one feature at a time, deleting their use of `web/src/sample/`.
+0. **Connect screens one feature at a time**, deleting their use of `web/src/sample/`. Next in `PLAN.md` Phase 2: the remaining tables (volunteer profile and skills, teams, requests, selections, assignments, weights, audit with INSERT/SELECT-only grants), then request intake (F1) and scoring.
 
 1. **Write Progress Report 1 (due Oct 7)** - the most urgent item. The UI prototype and the new scenario reference data can both go in it.
 2. **Mentor answers from `MENTOR-REVIEW.md` by Oct 15**, for Paper Part 2 (Oct 20). No answer means adopt the recommendations as `[Provisional]` (see Known Problems).
@@ -149,7 +149,7 @@ Session 2026-10-26 (frontend + login, plan `docs/superpowers/plans/2026-10-26-fr
 
 - **Files get reformatted between turns.** Always Read a file before editing it; never edit from memory.
 - **`.env.local` holds the real Neon `DATABASE_URL`.** It is git-ignored. Never print it, paste it into a file, or put it in a commit - pass it with `node --env-file=../.env.local`.
-- **The `neondb_owner` password was pasted into a chat transcript on 2026-09-18**, with the owner's informed agreement, to set `DATABASE_URL` on Render through the Render MCP. **Rotating it is still worth doing**: reset the role password in the Neon console, then update the Render environment variable and re-run `neon link`. Prefer having the owner set secrets by hand next time.
+- **The `neondb_owner` password was pasted into a chat transcript on 2026-09-18**, with the owner's informed agreement, to set `DATABASE_URL` on Render through the Render MCP. **Rotated by the owner (reported 2026-10-26).** Prefer having the owner set secrets by hand next time.
 - **A root `package.json` exists but is NOT a workspace.** It carries the Neon CLI packages only. Application dependencies go in `web/` or `api/` (D-043, D-045).
 - **Opening a direct `.csv` link in the browser downloads it** to the owner's Downloads folder without asking. This happened once on 2026-10-02 (`Global_Landslide_Catalog_Export_rows.csv`; the owner then chose to use it). Check before navigating to file links.
 - **Don't document commands or tools that don't exist yet.** The AGENTS.md command sections stay "Not established" until they are real.

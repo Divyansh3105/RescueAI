@@ -159,7 +159,7 @@ The commands for 1–3 are in the Test Stack table above. Run each in both `web/
 
 **GitHub Actions** (D-039). The workflow is `.github/workflows/ci.yml`, added 2026-09-18. It runs on every pull request and on pushes to `main`, as two jobs:
 
-- **api:** `npm ci`, `npm run lint`, `npm run typecheck`, `npm test`, with a `postgres:17-alpine` service container on port 5432 and `DATABASE_URL` set. Nothing uses the database yet; the service is there for the Phase 2 integration tests.
+- **api:** `npm ci`, `npm run lint`, `npm run typecheck`, `npm test`, with a `postgres:17-alpine` service container on port 5432 and `DATABASE_URL` set. The auth integration tests use it; the global setup migrates the empty `rescueai_test` database and refuses any database whose name doesn't end in `_test`.
 - **web:** `npm ci`, `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`.
 
 First green run on GitHub: 2026-09-18, both jobs passing on the initial push to `main`. Repository: <https://github.com/Divyansh3105/RescueAI>.
