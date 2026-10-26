@@ -62,7 +62,7 @@ Session 2026-10-08 (file structure):
 
 Session 2026-10-26 (frontend + login, plan `docs/superpowers/plans/2026-10-26-frontend-and-login.md`):
 - **API:** `users` + `sessions` (Drizzle, migration 0000, applied at start-up - D-053), bcryptjs cost 12, SHA-256-hashed session tokens, `sid` cookie (HttpOnly, SameSite=Lax, Secure in prod, 12 h), same 401 for wrong phone / wrong password / deactivated, `loadSession` + `requireRole`. 16 API tests, 11 of them integration tests against real PostgreSQL (D-052).
-- **Seed:** `SEED_PASSWORD=... npm run db:seed` creates four demo accounts on phones 9000000001-4 (volunteer, on-site, office, admin). **Neon has not been seeded** - the owner does that by hand; until then the deployed site has no account that can sign in.
+- **Seed:** `SEED_PASSWORD=... npm run db:seed` creates four demo accounts on phones 9000000001-4 (volunteer, on-site, office, admin). **Neon was seeded by the owner on 2026-10-26** with a password of their choosing (not recorded anywhere): a count of the live `users` table showed one active account per role. The deployed site can be signed into with phones 9000000001-4.
 - **Web:** the prototype switcher is gone. In-house router (no React Router - D-052), `RequireRole` guard, sign-in page in en/hi, three shells, 16 routes for five roles. Every screen except sign-in shows `web/src/sample/data.ts` and a "Sample data - not connected yet" note. The office commander's queue starts with one sample selection awaiting approval (RQ-4821).
 - **Admin sections** are Commanders, Users (password reset), Weights, Data, Audit Log - no Queue/Map (AC18). Recorded in DESIGN.md.
 - **Not used on purpose:** GSAP, Lenis, React Bits (the owner's global UI default). DESIGN.md forbids decorative motion and a second component library; the owner approved the plan that said so.
@@ -70,7 +70,7 @@ Session 2026-10-26 (frontend + login, plan `docs/superpowers/plans/2026-10-26-fr
 
 ## Currently In Progress
 
-- Nothing is half-done. The login and screens work is merged (PR #5, merge commit da3ebc8; its 8 commits are dated Oct 24-25). Remaining small item: seed Neon (see Next Steps).
+- Nothing is half-done. The login and screens work is merged (PR #5, merge commit da3ebc8; its 8 commits are dated Oct 24-25). Neon is seeded, so there is nothing left over from the login work.
 
 ## Known Problems
 
@@ -136,7 +136,7 @@ Session 2026-10-26 (frontend + login, plan `docs/superpowers/plans/2026-10-26-fr
 
 ## Next Steps
 
-0. **Seed Neon** (owner, by hand, from `api/`, with `SEED_PASSWORD` set in the shell) so the deployed site can be signed into. Then connect screens one feature at a time, deleting their use of `web/src/sample/`.
+0. **Connect screens one feature at a time**, deleting their use of `web/src/sample/`. Next in `PLAN.md` Phase 2: the remaining tables (volunteer profile and skills, teams, requests, selections, assignments, weights, audit with INSERT/SELECT-only grants), then request intake (F1) and scoring.
 
 1. **Write Progress Report 1 (due Oct 7)** - the most urgent item. The UI prototype and the new scenario reference data can both go in it.
 2. **Mentor answers from `MENTOR-REVIEW.md` by Oct 15**, for Paper Part 2 (Oct 20). No answer means adopt the recommendations as `[Provisional]` (see Known Problems).
