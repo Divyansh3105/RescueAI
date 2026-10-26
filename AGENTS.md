@@ -2,7 +2,7 @@
 
 Canonical instructions for AI coding agents working on RescueAI. Read this first on every task.
 
-> **Project state (2026-09-18): scaffolded, no features.** The repository is a git repository with the documentation set plus two empty packages, `web/` and `api/`. Both build, lint, type-check and run one trivial test. `docker compose up` serves the SPA and `/api/health` from one origin. It deploys to Render (free) with Neon PostgreSQL (D-044). GitHub Actions runs the checks on every pull request. **No PRD feature (F1-F14) is implemented and no database table exists yet.** Any section below that says **Not established** must be filled in, in the same change that establishes it.
+> **Project state (2026-10-26): login works, every screen exists on sample data.** `web/` and `api/` build, lint, type-check and test. `docker compose up` serves the SPA and the API from one origin; it deploys to Render (free) with Neon PostgreSQL (D-044). GitHub Actions runs the checks on every pull request. **Built:** phone + password login with server sessions (`users` and `sessions` tables, `/api/auth/*`, role guard; D-052), and every MVP screen for all five roles. **Every screen except sign-in shows sample data from `web/src/sample/` and calls no API** - don't describe them as working features. No other PRD feature (F1-F14) is implemented on the server. Any section below that says **Not established** must be filled in, in the same change that establishes it.
 
 ## Project Overview
 
@@ -72,22 +72,30 @@ data/
                    2010 and 2015 when used. Reference only.
 ```
 
-Also existing (created 2026-09-18, Phase 1 scaffold; no features yet):
+Also existing (created 2026-09-18; login and screens added 2026-10-26):
 ```
 web/                   React SPA (Vite, Tailwind v4, shadcn/ui, TanStack Query)
   src/index.css        Design tokens from docs/DESIGN.md. Change a token here, never per component.
-  src/components/ui/   shadcn/ui components, added with the shadcn CLI
-  src/lib/utils.ts     cn() class merge helper
-  src/prototype/       UI prototype for Progress Report 1: every role's main screen on
-                       synthetic sample data, no API. Phase 3 replaces it with real screens.
+  src/App.tsx          path -> page table. src/routes.ts decides which role may open a path.
+  src/router.ts        tiny History-API router (usePath, navigate); <Link> is components/Link.tsx
+  src/auth/            useSession / useLogin / useLogout and the <RequireRole> guard
+  src/shells/          CitizenShell, VolunteerShell, CommanderShell (also used by the Admin)
+  src/pages/           one component per screen (login, citizen, volunteer, commander, admin)
+  src/i18n/            en/hi dictionaries (identical keys, tested) and useLang
+  src/components/      domain composites (domain.tsx), LangSwitch, Link; ui/ is shadcn CLI output
+  src/sample/data.ts   synthetic data behind every screen that isn't connected yet
+  src/lib/             api.ts (apiFetch, ApiError), phone.ts, utils.ts (cn)
   components.json      shadcn CLI config (slate base, CSS variables, @/* alias)
 api/                   Express API (strict TypeScript)
-  src/app.ts           Express app: /api/health, 404 and error handler in the D-035 shape
-  src/routes/          not created yet - HTTP handlers land in Phase 2
-  src/services/        not created yet - business rules land in Phase 2
-  src/scoring/         not created yet - pure ranking functions land in Phase 2
-  src/db/              Drizzle client; schema.ts is an empty placeholder until Phase 2
-  drizzle.config.ts    drizzle-kit config (migrations output to api/drizzle/)
+  src/app.ts           Express app: /api/health, loadSession, /api/auth, 404 and error handler (D-035)
+  src/auth/            phone rule, session service (bcrypt, SHA-256 token hashes), requireRole
+  src/routes/          HTTP handlers; auth.ts (login, logout, me) is the only one so far
+  src/services/        not created yet - business rules
+  src/scoring/         not created yet - pure ranking functions
+  src/db/              Drizzle client, schema (users, sessions), migrate.ts, seed.ts
+  src/test/            integration-test global setup (migrate) and truncateAll()
+  drizzle/             generated migrations, applied at API start-up (D-053)
+  drizzle.config.ts    drizzle-kit config
 Dockerfile             Builds web/ and api/ into one image. This is the deployed unit.
 docker-compose.yml     db + app, building that same Dockerfile. Local stack.
 render.yaml            Render service definition. DATABASE_URL is set in the dashboard.
@@ -95,7 +103,10 @@ neon.ts                Neon branch policy, applied with `neon deploy` (D-045)
 package.json           Root manifest for the Neon CLI only - NOT a workspace. Put
                        application dependencies in web/ or api/ (D-043, D-045).
 .claude/skills/        Neon agent skills, installed by `neon skills`
-.env.example           Copy to .env for docker compose. POSTGRES_PASSWORD is required.
+.env.example           Copy to .env for docker compose. POSTGRES_PASSWORD is required;
+                       SEED_PASSWORD is for `npm run db:seed`.
+.claude/launch.json    Preview-pane dev servers: `web` (Vite) and `api`, which reads the
+                       git-ignored api/.env.development (one line: DATABASE_URL=... to a local DB)
 .env.local             Written by `neon link`. Holds the real DATABASE_URL.
                        Git-ignored - it is a secret, never commit it.
 .github/workflows/ci.yml  Lint, type-check and tests for both packages on every PR
@@ -117,10 +128,11 @@ npm only. `web/` and `api/` are separate packages with their own `package-lock.j
 | repo root | `docker compose down` | Stop it. Add `-v` to also drop the database volume. |
 | `api/` | `node --env-file=../.env.local --import tsx src/index.ts` | Run the API against the **real Neon** `production` branch instead of the local container |
 | repo root | `neon config plan` | Preview what `neon deploy` would change on the linked branch |
+| `api/` | `SEED_PASSWORD=... npm run db:seed` | Create or update the four demo accounts (phones 9000000001-4: volunteer, on-site, office, admin). Runs migrations first. |
 
 Deployed at <https://rescueai-70mu.onrender.com>, auto-deploying from `main`. The Neon project is `super-hill-50061651`, branch `production`, linked on 2026-09-18 (D-045). Never print or paste a connection string into a file, a log or a commit; pass `.env.local` with `--env-file` instead.
 
-`api/npm run db:generate` and `api/npm run db:migrate` wrap drizzle-kit. They do nothing useful until the Phase 2 schema exists.
+`api/npm run db:generate` creates a migration from `src/db/schema.ts`; commit the generated `api/drizzle/` files. `api/npm run db:migrate` applies them with drizzle-kit, though the API also applies them itself on start-up (D-053). Seeding Neon is a manual owner step: `node --env-file=../.env.local --import tsx src/db/seed.ts` with `SEED_PASSWORD` set in the shell.
 
 ## Build Commands
 
@@ -134,12 +146,12 @@ Deployed at <https://rescueai-70mu.onrender.com>, auto-deploying from `main`. Th
 
 | Where | Command | What it runs |
 |---|---|---|
-| `api/` | `npm test` | Vitest, `api/src/**/*.test.ts` |
+| `api/` | `npm test` | Vitest, `api/src/**/*.test.ts`, including integration tests. Needs `DATABASE_URL` pointing at a **throwaway** PostgreSQL - the tests empty it (see `docs/TESTING.md`). |
 | `web/` | `npm test` | Vitest, `web/src/**/*.test.ts` |
 | `api/` | `npm run lint` / `npm run typecheck` | ESLint / `tsc --noEmit` |
 | `web/` | `npm run lint` / `npm run typecheck` | ESLint / `tsc -b --noEmit` |
 
-Integration tests against Docker PostgreSQL do not exist yet; their harness lands in Phase 2. See `docs/TESTING.md` for the strategy and the Definition of Done.
+Integration tests run against real PostgreSQL (the CI service container, or a local Docker container - commands in `docs/TESTING.md`). See `docs/TESTING.md` for the strategy and the Definition of Done.
 
 ## Code Conventions
 

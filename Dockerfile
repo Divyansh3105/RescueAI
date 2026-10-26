@@ -24,6 +24,8 @@ ENV NODE_ENV=production
 COPY api/package.json api/package-lock.json ./
 RUN npm ci --omit=dev
 COPY --from=api /api/dist ./dist
+# Applied at start-up by src/db/migrate.ts (D-053).
+COPY api/drizzle ./drizzle
 COPY --from=web /web/dist ./public
 EXPOSE 3000
 CMD ["node", "dist/index.js"]

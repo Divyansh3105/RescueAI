@@ -6,6 +6,16 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["--prefix", "web", "run", "dev"],
       "port": 5173
+    },
+    {
+      "name": "api",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "api/node_modules/tsx/dist/cli.mjs",
+        "--env-file=api/.env.development",
+        "api/src/index.ts"
+      ],
+      "port": 3000
     }
   ]
 }

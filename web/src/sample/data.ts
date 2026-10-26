@@ -1,10 +1,10 @@
 /**
- * UI prototype data for Progress Report 1. Everything here is synthetic
- * (RULES.md -> Database Rules) and lives only in the browser.
+ * Sample data for the screens that are not connected to the API yet. Everything here is
+ * synthetic (RULES.md -> Database Rules) and lives only in the browser.
  *
- * The scoring below follows the PRD F5-F7 formulas so the screens show real
- * numbers, but it is NOT the implementation: the real scoring lands in
- * api/src/scoring/ in Phase 2, and this whole folder goes away with it.
+ * The scoring below follows the PRD F5-F7 formulas so the screens show real numbers, but
+ * it is NOT the implementation: the real scoring lands in api/src/scoring/, and each
+ * screen drops this file as it is connected.
  */
 
 export type Skill =
@@ -423,3 +423,131 @@ export function rankTeams(r: RescueRequest): Recommendation[] {
     .sort((a, b) => b.score.total - a.score.total)
     .slice(0, 10);
 }
+
+// Selections already sent for approval, so the office commander's queue has work in it.
+// AC22: selected by a different account than the one that approves.
+export interface SampleDecision {
+  status: 'Awaiting approval' | 'Approved' | 'Sent back';
+  picked: string[];
+  note?: string;
+  selectedBy: string;
+  selectedAt: string;
+  decidedBy?: string;
+  decidedAt?: string;
+}
+
+export const sampleDecisions: Record<string, SampleDecision | undefined> = {
+  'RQ-4821': {
+    status: 'Awaiting approval',
+    picked: ['v1', 't2'],
+    selectedBy: 'Insp. Anil Rawat',
+    selectedAt: '14:05',
+  },
+};
+
+export interface AuditEntry {
+  at: string;
+  actor: string;
+  role: string;
+  action: string;
+  target: string;
+}
+
+export const auditLog: AuditEntry[] = [
+  {
+    at: '2026-10-26 14:05',
+    actor: 'Insp. Anil Rawat',
+    role: 'On-site commander',
+    action: 'Selected 2 responders, sent for approval',
+    target: 'RQ-4821',
+  },
+  {
+    at: '2026-10-26 13:58',
+    actor: 'Insp. Anil Rawat',
+    role: 'On-site commander',
+    action: 'Verified skill First Aid',
+    target: 'Ankit Rawat',
+  },
+  {
+    at: '2026-10-26 13:40',
+    actor: 'Dy. Cmdt. Priya Sharma',
+    role: 'Office commander',
+    action: 'Asked volunteers to share location',
+    target: 'All volunteers',
+  },
+  {
+    at: '2026-10-26 12:10',
+    actor: 'Admin',
+    role: 'Admin',
+    action: 'Changed scoring weights',
+    target: 'Settings',
+  },
+  {
+    at: '2026-10-26 09:02',
+    actor: 'Admin',
+    role: 'Admin',
+    action: 'Created commander account',
+    target: 'Insp. Anil Rawat',
+  },
+];
+
+export interface Account {
+  id: string;
+  name: string;
+  phone: string;
+  role: 'Volunteer' | 'On-site commander' | 'Office commander' | 'Admin';
+  active: boolean;
+}
+
+// Synthetic accounts for the Admin screens. Phone numbers are fake (9000… range).
+export const accounts: Account[] = [
+  {
+    id: 'u1',
+    name: 'Insp. Anil Rawat',
+    phone: '9000001001',
+    role: 'On-site commander',
+    active: true,
+  },
+  {
+    id: 'u2',
+    name: 'Dy. Cmdt. Priya Sharma',
+    phone: '9000001002',
+    role: 'Office commander',
+    active: true,
+  },
+  {
+    id: 'u3',
+    name: 'SI Mohan Bisht',
+    phone: '9000001003',
+    role: 'On-site commander',
+    active: false,
+  },
+  { id: 'u4', name: 'Ankit Rawat', phone: '9000002001', role: 'Volunteer', active: true },
+  { id: 'u5', name: 'Pooja Negi', phone: '9000002002', role: 'Volunteer', active: true },
+];
+
+export interface ServiceRecord {
+  id: string;
+  date: string;
+  hazard: Hazard;
+  place: string;
+  outcome: 'Completed' | 'Declined';
+}
+
+export const serviceHistory: ServiceRecord[] = [
+  {
+    id: 'RQ-4710',
+    date: '2026-09-14',
+    hazard: 'Flood',
+    place: 'Raipur, Dehradun',
+    outcome: 'Completed',
+  },
+  {
+    id: 'RQ-4688',
+    date: '2026-09-02',
+    hazard: 'Landslide',
+    place: 'Sahastradhara road',
+    outcome: 'Completed',
+  },
+  { id: 'RQ-4650', date: '2026-08-21', hazard: 'Flood', place: 'Doiwala', outcome: 'Declined' },
+];

@@ -96,6 +96,9 @@ Already decided: on 2026-09-15 (D-026 to D-034) band cutoffs and the Wait cap (b
 **This is the highest-risk phase in the plan.** Two fixed external dates (Oct 20 and Oct 26) sit inside it, and it carries the schema, login, the whole scoring core, a demo and a paper section in about 13 working days. Cut scope here before cutting it anywhere else.
 
 **Build: data, login and access (A):**
+
+> **Progress 2026-10-26:** done - USER and SESSION tables with migrations (applied at start-up, D-053), login / logout / current-session routes, `requireRole`, the D-035 error shape on those routes, the integration harness (without the truncate role yet), and the seed script (four demo accounts, no volunteers or teams yet). Also done from (C): the login screen and **every** role screen, not just empty shells, on sample data. Still open from (A): the other tables, constraints, audit grants, ownership checks and the Admin commander routes.
+
 - Drizzle schema and migrations for USER, VOLUNTEER_PROFILE, VOLUNTEER_SKILL, TEAM, TEAM_CAPABILITY, RESCUE_REQUEST, SELECTION, ASSIGNMENT, SCORING_WEIGHTS, LOCATION_REQUEST, AUDIT_ENTRY and SESSION.
 - Database constraints: status values, and at most one active assignment per responder.
 - The app's database role gets only `INSERT`/`SELECT` on the audit table.

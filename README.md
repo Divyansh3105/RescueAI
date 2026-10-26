@@ -14,9 +14,10 @@ demonstrated on flood and landslide scenarios in Uttarakhand.
 **Deployed:** <https://rescueai-70mu.onrender.com> — auto-deploys from `main`. It is a free
 instance, so it sleeps after ~15 minutes idle and the first request then takes ~50 s.
 
-> **Status: scaffolded, no features.** The packages build, lint, type-check and deploy, and
-> `/api/health` answers. No PRD feature (F1–F14) is implemented yet — there is no
-> database schema, no auth and no scoring. See [`docs/MEMORY.md`](docs/MEMORY.md) for exactly where things
+> **Status: login works; every screen exists on sample data.** Volunteers, commanders and
+> the Admin can sign in (phone + password, server sessions), and each role has all its
+> screens — but apart from sign-in they show sample data and call no API. Requests,
+> scoring and decisions are not built yet. See [`docs/MEMORY.md`](docs/MEMORY.md) for exactly where things
 > stand and [`docs/PLAN.md`](docs/PLAN.md) for what lands when.
 
 ## The loop

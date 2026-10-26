@@ -1,11 +1,12 @@
 # Project Memory
 
-_Last updated: 2026-10-08 (file structure tidy-up). Update this after every meaningful session and delete anything that's out of date._
+_Last updated: 2026-10-26 (frontend screens and working login). Update this after every meaningful session and delete anything that's out of date._
 
 ## Current Status
 
-- **Scaffolded, no features.** It is a git repository now, pushed to <https://github.com/Divyansh3105/RescueAI> on `main`, with CI green. `web/` and `api/` exist, build, lint, type-check and each pass one trivial test. **Deployed and live at <https://rescueai-70mu.onrender.com>** (Render free, Singapore, auto-deploy from `main`), reading from Neon. `docker compose up` builds the same image locally and serves it from `http://localhost:3000` - verified on 2026-09-18: health returned `{"status":"ok","db":"up"}`, the SPA rendered it in a browser, a deep route fell back to `index.html`, and an unknown `/api/*` route returned the D-035 error shape.
-- **No PRD feature is implemented.** No database table, no Drizzle schema, no migration, no auth, no scoring, no route beyond `/api/health`. All of that is Phase 2.
+- **Login works; every screen exists on sample data (2026-10-26, branch `feat/frontend-and-login`, not merged).** See the 2026-10-26 entry below.
+- **Before that: scaffolded, no features.** It is a git repository now, pushed to <https://github.com/Divyansh3105/RescueAI> on `main`, with CI green. `web/` and `api/` exist, build, lint, type-check and each pass one trivial test. **Deployed and live at <https://rescueai-70mu.onrender.com>** (Render free, Singapore, auto-deploy from `main`), reading from Neon. `docker compose up` builds the same image locally and serves it from `http://localhost:3000` - verified on 2026-09-18: health returned `{"status":"ok","db":"up"}`, the SPA rendered it in a browser, a deep route fell back to `index.html`, and an unknown `/api/*` route returned the D-035 error shape.
+- **Only login is implemented on the server.** Tables: `users`, `sessions`. Routes: `/api/health`, `/api/auth/login|logout|me`. No requests, scoring, decisions or audit table yet.
 - The documentation set: `PRD.md`, `AGENTS.md` (the entry point), `DESIGN.md`, `ARCHITECTURE.md`, `RULES.md`, `DECISIONS.md`, `TESTING.md`, `PLAN.md`, `MEMORY.md`, and `CLAUDE.md` (which just imports AGENTS.md).
 - The stack, tooling and coding rules are decided. The PRD is **Draft v2** and still **not formally approved**.
 
@@ -59,9 +60,17 @@ Session 2026-10-08 (file structure):
 - The five Uttarakhand CSVs moved to `data/uttarakhand/` with the `uttarakhand_` prefix dropped (e.g. `data/uttarakhand/responder_bases.csv`). Paths updated in AGENTS.md, ARCHITECTURE.md, README.md and here.
 - Docs no longer claim `api/src/routes`, `services` and `scoring` exist as empty folders: git does not track empty folders, so a fresh clone never had them. Phase 2 creates them.
 
+Session 2026-10-26 (frontend + login, plan `docs/superpowers/plans/2026-10-26-frontend-and-login.md`):
+- **API:** `users` + `sessions` (Drizzle, migration 0000, applied at start-up - D-053), bcryptjs cost 12, SHA-256-hashed session tokens, `sid` cookie (HttpOnly, SameSite=Lax, Secure in prod, 12 h), same 401 for wrong phone / wrong password / deactivated, `loadSession` + `requireRole`. 16 API tests, 11 of them integration tests against real PostgreSQL (D-052).
+- **Seed:** `SEED_PASSWORD=... npm run db:seed` creates four demo accounts on phones 9000000001-4 (volunteer, on-site, office, admin). **Neon has not been seeded** - the owner does that by hand; until then the deployed site has no account that can sign in.
+- **Web:** the prototype switcher is gone. In-house router (no React Router - D-052), `RequireRole` guard, sign-in page in en/hi, three shells, 16 routes for five roles. Every screen except sign-in shows `web/src/sample/data.ts` and a "Sample data - not connected yet" note. The office commander's queue starts with one sample selection awaiting approval (RQ-4821).
+- **Admin sections** are Commanders, Users (password reset), Weights, Data, Audit Log - no Queue/Map (AC18). Recorded in DESIGN.md.
+- **Not used on purpose:** GSAP, Lenis, React Bits (the owner's global UI default). DESIGN.md forbids decorative motion and a second component library; the owner approved the plan that said so.
+- Verified by hand in the preview browser: sign-in for all four roles, wrong-role redirects, `?next=` open-redirect guard, logout, network-failure Alert keeping values, Hindi at 375 px. Docker image: migrations on boot, seed inside the image (`node dist/db/seed.js`), login and SPA deep links.
+
 ## Currently In Progress
 
-Nothing is half-done. Waiting on the user for the remaining decisions (see Known Problems).
+- `feat/frontend-and-login` is committed locally, **not pushed and no PR**. It was branched off `chore/file-structure` (commit c013e1f, also unmerged), so merge that first or the PR carries it.
 
 ## Known Problems
 
@@ -88,7 +97,8 @@ Nothing is half-done. Waiting on the user for the remaining decisions (see Known
 - **Phase 1 items still not answered:** the domain name, and copying the timeline PDF into the repo (still only in the user's Downloads), and phase owners.
 - **Paper Part 1 (Sep 10) was submitted** - confirmed by the owner 2026-09-18. No longer a risk.
 - **Progress Report 1 is not written.** Due Sep 28 - Oct 7.
-- **UI prototype for the report (2026-09-23):** `web/src/prototype/` replaced the placeholder `App.tsx`. A switcher at the top shows Citizen form (en/hi), Volunteer home (en/hi), On-site commander queue and Office commander approval, all on synthetic Dehradun data with no API. Scores use the PRD formulas in the browser, so the breakdowns add up, but **this is not the scoring implementation** - that is `api/src/scoring/` in Phase 2. Don't describe the prototype as working features. The old "Share location" probe is gone; the citizen form's "Use my location" does the same job. `index.css` now pins Tailwind's `dark:` variant to a `.dark` class so shadcn components stay light when the OS is in dark mode.
+- **Login has no rate limit.** Nothing decided a number (D-036 is only the public form). Decide one before the evaluation with external evaluators.
+- **UI prototype for the report (2026-09-23, superseded 2026-10-26 - the files now live under `web/src/pages/` and `web/src/sample/`):** `web/src/prototype/` replaced the placeholder `App.tsx`. A switcher at the top shows Citizen form (en/hi), Volunteer home (en/hi), On-site commander queue and Office commander approval, all on synthetic Dehradun data with no API. Scores use the PRD formulas in the browser, so the breakdowns add up, but **this is not the scoring implementation** - that is `api/src/scoring/` in Phase 2. Don't describe the prototype as working features. The old "Share location" probe is gone; the citizen form's "Use my location" does the same job. `index.css` now pins Tailwind's `dark:` variant to a `.dark` class so shadcn components stay light when the OS is in dark mode.
   - Polish pass (same day): commander Map (Leaflet + OSM, lazy-loaded so citizen phones never download it), sidebar icons, a summary strip, signed-in commander names, and a who-did-what trail on each decision showing two different accounts (AC22). The volunteer screen now has Accept -> assignment -> Mark completed plus service history; the citizen confirmation now says what happens next and mentions 112. Outline buttons use `--input` borders (3:1), the `lg` button is 44px, and control shadows are removed per DESIGN.md. `leaflet` + `@types/leaflet` were added: an adopted tool (ARCHITECTURE Maps: Decided), not a new one.
   - **Map marker shapes are only a prototype choice** (request = circle with the band letter, volunteer = square "V", team = diamond "T"). DESIGN.md lists them as Proposed; confirm them before Phase 5.
   - Committed as `cb47c72`.
@@ -125,6 +135,8 @@ Nothing is half-done. Waiting on the user for the remaining decisions (see Known
 - D-041 and D-042 are the plan and data-model review. D-043 (scaffold choices), D-044 (Render + Neon hosting, superseding AD6), D-045 (Neon CLI tooling in the repo) and D-046 (Singapore region, direct Neon connection) are from session 4.
 
 ## Next Steps
+
+0. **Review and merge `feat/frontend-and-login`** (after `chore/file-structure`), then seed Neon with `SEED_PASSWORD` so the deployed site can be signed into. Then connect screens one feature at a time, deleting their use of `web/src/sample/`.
 
 1. **Write Progress Report 1 (due Oct 7)** - the most urgent item. The UI prototype and the new scenario reference data can both go in it.
 2. **Mentor answers from `MENTOR-REVIEW.md` by Oct 15**, for Paper Part 2 (Oct 20). No answer means adopt the recommendations as `[Provisional]` (see Known Problems).

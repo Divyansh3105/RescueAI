@@ -1,4 +1,14 @@
-import { lazy, Suspense, useState } from 'react';
+import { useState } from 'react';
+import { useSession } from '@/auth/session';
+import {
+  PriorityBadge,
+  RecommendationCard,
+  ScoreBreakdown,
+  SkillChip,
+  StatusBadge,
+  type Status,
+} from '@/components/domain';
+import { SampleDataNote } from '@/components/SampleDataNote';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -14,6 +24,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
+import { navigate, usePath } from '@/router';
 import {
   band,
   priority,
@@ -21,38 +32,16 @@ import {
   rankVolunteers,
   requests,
   requiredSkills,
+  sampleDecisions,
   severity,
   teams,
   volunteers,
   type RescueRequest,
-} from './data';
-import {
-  PriorityBadge,
-  RecommendationCard,
-  ScoreBreakdown,
-  SkillChip,
-  StatusBadge,
-  type Status,
-} from './parts';
+  type SampleDecision,
+} from '@/sample/data';
+import { CommanderShell } from '@/shells/CommanderShell';
 
-export type Role = 'onsite' | 'office';
-export interface Decision {
-  status: 'Awaiting approval' | 'Approved' | 'Sent back';
-  picked: string[];
-  note?: string;
-  // Who did what, when. Mirrors the two audit-log entries AC22 requires.
-  selectedBy: string;
-  selectedAt: string;
-  decidedBy?: string;
-  decidedAt?: string;
-}
-type Decisions = Record<string, Decision | undefined>;
-
-// Sample accounts. AC22: the selector and the approver are different users.
-const people: Record<Role, { name: string; title: string }> = {
-  onsite: { name: 'Insp. Anil Rawat', title: 'On-site commander, SDRF' },
-  office: { name: 'Dy. Cmdt. Priya Sharma', title: 'Office commander, District EOC' },
-};
+type Role = 'onsite' | 'office';
 
 const clock = () =>
   new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: false });
@@ -62,111 +51,43 @@ const queue = requests
   .map((r) => ({ r, p: priority(r) }))
   .sort((a, b) => b.p.total - a.p.total || b.r.minutesAgo - a.r.minutesAgo);
 
-// Leaflet is loaded only when a commander opens the map, so citizen phones never download it.
-const MapView = lazy(() => import('./MapView').then((m) => ({ default: m.MapView })));
-
-type Section = 'Queue' | 'Map' | 'Volunteers' | 'Teams' | 'Audit Log';
-
-const icon = (d: string) => (
-  <svg
-    viewBox="0 0 16 16"
-    aria-hidden="true"
-    className="size-4 shrink-0"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.5"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d={d} />
-  </svg>
-);
-
-const sections: [Section, React.ReactNode, boolean][] = [
-  ['Queue', icon('M2.5 4h11M2.5 8h11M2.5 12h7'), true],
-  ['Map', icon('M1.5 3.5l4-1.5 5 2 4-1.5v10l-4 1.5-5-2-4 1.5zM5.5 2v10M10.5 4v10'), true],
-  [
-    'Volunteers',
-    icon('M8 7.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5zM3 14c.5-2.8 2.5-4.5 5-4.5s4.5 1.7 5 4.5'),
-    false,
-  ],
-  ['Teams', icon('M8 1.5l5.5 2v4c0 3.5-2.4 6-5.5 7-3.1-1-5.5-3.5-5.5-7v-4z'), false],
-  ['Audit Log', icon('M4 1.5h8v13H4zM6.5 5h3M6.5 8h3M6.5 11h2'), false],
-];
-
-function Nav({ current, onGo }: { current: Section; onGo: (s: Section) => void }) {
-  return (
-    <ul className="space-y-1 text-sm">
-      {sections.map(([s, ic, built]) => (
-        <li key={s}>
-          {built ? (
-            <button
-              type="button"
-              aria-current={current === s ? 'page' : undefined}
-              onClick={() => onGo(s)}
-              className={cn(
-                'focus-visible:ring-ring flex w-full items-center gap-3 rounded-md px-3 py-2 text-left focus-visible:ring-2 focus-visible:outline-none',
-                current === s
-                  ? 'bg-background font-medium ring-1 ring-slate-200'
-                  : 'hover:bg-background',
-              )}
-            >
-              {ic}
-              {s}
-            </button>
-          ) : (
-            <span
-              className="text-muted-foreground flex items-center gap-3 px-3 py-2"
-              title="Not in this prototype"
-            >
-              {ic}
-              {s}
-            </span>
-          )}
-        </li>
-      ))}
-    </ul>
-  );
-}
-
 const waited = (m: number) =>
   m < 60 ? `${String(m)} min` : `${String(Math.floor(m / 60))} h ${String(m % 60)} min`;
 
-export function CommanderQueue({
-  role,
-  decisions,
-  setDecision,
-}: {
-  role: Role;
-  decisions: Decisions;
-  setDecision: (id: string, d: Decision) => void;
-}) {
-  const [section, setSection] = useState<Section>('Queue');
+/**
+ * The prioritized queue with a split-view detail (DESIGN.md -> Layout). Office commanders
+ * see only selections sent for approval. The selected request and the filter live in the
+ * URL (?r=, ?filter=awaiting). Sample only: decisions stay in this page's memory.
+ */
+export function QueuePage() {
+  const { user } = useSession();
+  const { path, search } = usePath();
+  const role: Role = user?.role === 'office_commander' ? 'office' : 'onsite';
+  const [decisions, setDecisions] = useState(sampleDecisions);
+
+  const setParams = (r: string | null, f: string | null) => {
+    const q = new URLSearchParams();
+    if (r) q.set('r', r);
+    if (f) q.set('filter', f);
+    const qs = q.toString();
+    navigate(qs ? `${path}?${qs}` : path, { replace: true });
+  };
+
+  const filter = search.get('filter') === 'awaiting' ? 'awaiting' : 'all';
   const awaitingCount = queue.filter(
     ({ r }) => decisions[r.id]?.status === 'Awaiting approval',
   ).length;
-  const [filter, setFilter] = useState<'all' | 'awaiting'>('all');
-  const activeFilter = role === 'office' ? 'awaiting' : filter;
   // The office commander also keeps the selections they already decided, so the outcome stays visible.
   const rows = queue.filter(({ r }) =>
     role === 'office'
       ? decisions[r.id] !== undefined
-      : activeFilter === 'all' || decisions[r.id]?.status === 'Awaiting approval',
+      : filter === 'all' || decisions[r.id]?.status === 'Awaiting approval',
   );
-  // On a wide screen the split view opens on the top request instead of an empty pane.
-  const [selectedId, setSelectedId] = useState<string | null>(() =>
-    window.matchMedia('(min-width: 1024px)').matches ? (rows[0]?.r.id ?? null) : null,
-  );
+  const selectedId = search.get('r');
   const selected = rows.find(({ r }) => r.id === selectedId) ?? null;
+  const select = (id: string | null) => setParams(id, filter === 'awaiting' ? filter : null);
 
   const statusOf = (r: RescueRequest): Status => decisions[r.id]?.status ?? r.status;
-  const me = people[role];
-
-  const openInQueue = (id: string) => {
-    setFilter('all');
-    setSelectedId(id);
-    setSection('Queue');
-  };
 
   const summary: [string, string | number, string?][] = [
     ['Open requests', queue.length],
@@ -183,170 +104,136 @@ export function CommanderQueue({
     ],
   ];
 
-  return (
-    <div className="flex min-h-0 flex-1 text-sm">
-      <aside className="bg-muted hidden w-48 shrink-0 flex-col border-r p-3 lg:flex xl:w-56 xl:p-4">
-        <p className="px-3 text-base font-semibold">RescueAI</p>
-        <p className="text-muted-foreground mb-6 px-3 text-xs">
-          Dehradun district · Flood response
-        </p>
-        <nav aria-label="Sections">
-          <Nav current={section} onGo={setSection} />
-        </nav>
-        <div className="mt-auto border-t px-3 pt-4">
-          <p className="font-medium">{me.name}</p>
-          <p className="text-muted-foreground text-xs">{me.title}</p>
-        </div>
-      </aside>
-
-      <main id="content" className="flex min-w-0 flex-1 flex-col">
-        <details className="border-b px-4 py-2 lg:hidden">
-          <summary className="cursor-pointer py-1 font-semibold">RescueAI · {me.name}</summary>
-          <nav aria-label="Sections" className="pt-2">
-            <Nav current={section} onGo={setSection} />
-          </nav>
-        </details>
-
-        <div className="flex flex-wrap items-end justify-between gap-3 px-4 pt-4 pb-3 lg:px-6">
-          <div>
-            <h1 className="text-2xl font-semibold">{section}</h1>
-            <p className="text-muted-foreground">
-              {section === 'Map'
-                ? 'Open requests, available volunteers and team bases.'
-                : role === 'onsite'
-                  ? 'Pending and in-progress requests, highest priority first.'
-                  : 'Selections sent by on-site commanders, waiting for your approval.'}
-            </p>
-          </div>
-          {section === 'Queue' && role === 'onsite' && (
-            <div role="group" aria-label="Filter" className="border-input flex rounded-md border">
-              {(
-                [
-                  ['all', `All open (${String(queue.length)})`],
-                  ['awaiting', `Awaiting approval (${String(awaitingCount)})`],
-                ] as const
-              ).map(([key, label]) => (
-                <button
-                  key={key}
-                  type="button"
-                  aria-pressed={filter === key}
-                  onClick={() => setFilter(key)}
-                  className={cn(
-                    'focus-visible:ring-ring px-3 py-1.5 first:rounded-l-md last:rounded-r-md focus-visible:ring-2 focus-visible:outline-none',
-                    filter === key ? 'bg-muted font-medium' : 'text-muted-foreground',
-                  )}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
+  const filterGroup = role === 'onsite' && (
+    <div role="group" aria-label="Filter" className="border-input flex rounded-md border">
+      {(
+        [
+          ['all', `All open (${String(queue.length)})`],
+          ['awaiting', `Awaiting approval (${String(awaitingCount)})`],
+        ] as const
+      ).map(([key, label]) => (
+        <button
+          key={key}
+          type="button"
+          aria-pressed={filter === key}
+          onClick={() => setParams(null, key === 'awaiting' ? key : null)}
+          className={cn(
+            'focus-visible:ring-ring px-3 py-1.5 first:rounded-l-md last:rounded-r-md focus-visible:ring-2 focus-visible:outline-none',
+            filter === key ? 'bg-muted font-medium' : 'text-muted-foreground',
           )}
-        </div>
-
-        <dl className="grid grid-cols-3 border-y sm:grid-cols-6">
-          {summary.map(([label, value, tone]) => (
-            <div key={label} className="border-r px-4 py-2 last:border-r-0 lg:px-6">
-              <dt className="text-muted-foreground text-xs">{label}</dt>
-              <dd className={cn('text-lg font-semibold tabular-nums', tone)}>{value}</dd>
-            </div>
-          ))}
-        </dl>
-
-        {section === 'Map' ? (
-          <Suspense fallback={<div className="bg-muted min-h-96 flex-1" aria-busy="true" />}>
-            <MapView statusOf={statusOf} onOpen={openInQueue} />
-          </Suspense>
-        ) : (
-          <div className="grid min-h-0 flex-1 lg:grid-cols-2 xl:grid-cols-5">
-            <section
-              aria-label="Requests"
-              className={cn(
-                'border-r lg:overflow-y-auto xl:col-span-2',
-                selected && 'hidden lg:block',
-              )}
-            >
-              {rows.length === 0 ? (
-                <p className="text-muted-foreground p-6">
-                  {activeFilter === 'awaiting'
-                    ? 'No selections waiting for approval.'
-                    : 'No pending requests.'}
-                </p>
-              ) : (
-                <table className="w-full tabular-nums">
-                  <thead className="bg-muted text-muted-foreground sticky top-0 text-xs">
-                    <tr>
-                      <th className="px-4 py-2 text-left font-medium">Request</th>
-                      <th className="px-2 py-2 text-right font-medium">Sev</th>
-                      <th className="hidden px-2 py-2 text-right font-medium xl:table-cell">Vul</th>
-                      <th className="px-2 py-2 text-right font-medium">Waiting</th>
-                      <th className="px-4 py-2 text-left font-medium">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {rows.map(({ r, p }) => (
-                      <tr
-                        key={r.id}
-                        tabIndex={0}
-                        aria-selected={r.id === selectedId}
-                        onClick={() => setSelectedId(r.id)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') setSelectedId(r.id);
-                        }}
-                        className={cn(
-                          'focus-visible:ring-ring cursor-pointer border-t border-l-4 border-l-transparent align-top hover:bg-slate-50 focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-inset',
-                          r.id === selectedId && 'border-l-primary bg-muted',
-                        )}
-                      >
-                        <td className="w-full px-4 py-3">
-                          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                            <span className="font-semibold whitespace-nowrap">{r.id}</span>
-                            <PriorityBadge band={band(p.total)} score={p.total} />
-                          </div>
-                          <div className="text-muted-foreground mt-1 line-clamp-2 text-xs">
-                            {r.hazard} · {r.place}
-                          </div>
-                        </td>
-                        <td className="px-2 py-3 text-right">{severity(r)}</td>
-                        <td className="hidden px-2 py-3 text-right xl:table-cell">
-                          {r.flags.length}/4
-                        </td>
-                        <td className="px-2 py-3 text-right whitespace-nowrap">
-                          {waited(r.minutesAgo)}
-                        </td>
-                        <td className="px-4 py-3">
-                          <StatusBadge status={statusOf(r)} />
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-            </section>
-
-            <section
-              aria-label="Request detail"
-              className="min-w-0 lg:overflow-y-auto xl:col-span-3"
-            >
-              {selected ? (
-                <Detail
-                  key={selected.r.id}
-                  request={selected.r}
-                  role={role}
-                  status={statusOf(selected.r)}
-                  decision={decisions[selected.r.id]}
-                  onBack={() => setSelectedId(null)}
-                  setDecision={(d) => setDecision(selected.r.id, d)}
-                />
-              ) : (
-                <p className="text-muted-foreground hidden p-6 lg:block">
-                  Select a request to see its details and recommendations.
-                </p>
-              )}
-            </section>
-          </div>
-        )}
-      </main>
+        >
+          {label}
+        </button>
+      ))}
     </div>
+  );
+
+  return (
+    <CommanderShell
+      title={role === 'office' ? 'Awaiting approval' : 'Queue'}
+      description={
+        role === 'onsite'
+          ? 'Pending and in-progress requests, highest priority first.'
+          : 'Selections sent by on-site commanders, waiting for your approval.'
+      }
+      actions={filterGroup}
+      fill
+    >
+      <div className="px-4 pb-3 lg:px-6">
+        <SampleDataNote />
+      </div>
+      <dl className="grid grid-cols-3 border-y sm:grid-cols-6">
+        {summary.map(([label, value, tone]) => (
+          <div key={label} className="border-r px-4 py-2 last:border-r-0 lg:px-6">
+            <dt className="text-muted-foreground text-xs">{label}</dt>
+            <dd className={cn('text-lg font-semibold tabular-nums', tone)}>{value}</dd>
+          </div>
+        ))}
+      </dl>
+
+      <div className="grid min-h-0 flex-1 lg:grid-cols-2 xl:grid-cols-5">
+        <section
+          aria-label="Requests"
+          className={cn('border-r lg:overflow-y-auto xl:col-span-2', selected && 'hidden lg:block')}
+        >
+          {rows.length === 0 ? (
+            <p className="text-muted-foreground p-6">
+              {role === 'office' || filter === 'awaiting'
+                ? 'No selections waiting for approval.'
+                : 'No pending requests.'}
+            </p>
+          ) : (
+            <table className="w-full tabular-nums">
+              <thead className="bg-muted text-muted-foreground sticky top-0 text-xs">
+                <tr>
+                  <th className="px-4 py-2 text-left font-medium">Request</th>
+                  <th className="px-2 py-2 text-right font-medium">Sev</th>
+                  <th className="hidden px-2 py-2 text-right font-medium xl:table-cell">Vul</th>
+                  <th className="px-2 py-2 text-right font-medium">Waiting</th>
+                  <th className="px-4 py-2 text-left font-medium">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map(({ r, p }) => (
+                  <tr
+                    key={r.id}
+                    tabIndex={0}
+                    aria-selected={r.id === selectedId}
+                    onClick={() => select(r.id)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') select(r.id);
+                    }}
+                    className={cn(
+                      'focus-visible:ring-ring cursor-pointer border-t border-l-4 border-l-transparent align-top hover:bg-slate-50 focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-inset',
+                      r.id === selectedId && 'border-l-primary bg-muted',
+                    )}
+                  >
+                    <td className="w-full px-4 py-3">
+                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                        <span className="font-semibold whitespace-nowrap">{r.id}</span>
+                        <PriorityBadge band={band(p.total)} score={p.total} />
+                      </div>
+                      <div className="text-muted-foreground mt-1 line-clamp-2 text-xs">
+                        {r.hazard} · {r.place}
+                      </div>
+                    </td>
+                    <td className="px-2 py-3 text-right">{severity(r)}</td>
+                    <td className="hidden px-2 py-3 text-right xl:table-cell">
+                      {r.flags.length}/4
+                    </td>
+                    <td className="px-2 py-3 text-right whitespace-nowrap">
+                      {waited(r.minutesAgo)}
+                    </td>
+                    <td className="px-4 py-3">
+                      <StatusBadge status={statusOf(r)} />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </section>
+
+        <section aria-label="Request detail" className="min-w-0 lg:overflow-y-auto xl:col-span-3">
+          {selected && user ? (
+            <Detail
+              key={selected.r.id}
+              request={selected.r}
+              role={role}
+              me={user.name}
+              status={statusOf(selected.r)}
+              decision={decisions[selected.r.id]}
+              onBack={() => select(null)}
+              setDecision={(d) => setDecisions((cur) => ({ ...cur, [selected.r.id]: d }))}
+            />
+          ) : (
+            <p className="text-muted-foreground hidden p-6 lg:block">
+              Select a request to see its details and recommendations.
+            </p>
+          )}
+        </section>
+      </div>
+    </CommanderShell>
   );
 }
 
@@ -357,13 +244,15 @@ function Detail({
   decision,
   onBack,
   setDecision,
+  me,
 }: {
   request: RescueRequest;
   role: Role;
+  me: string;
   status: Status;
-  decision: Decision | undefined;
+  decision: SampleDecision | undefined;
   onBack: () => void;
-  setDecision: (d: Decision) => void;
+  setDecision: (d: SampleDecision) => void;
 }) {
   const p = priority(r);
   const vols = rankVolunteers(r);
@@ -383,9 +272,8 @@ function Detail({
       .filter(({ rec }) => !readOnly || picked.includes(rec.id));
 
   const pickedRecs = [...vols, ...tms].filter((x) => picked.includes(x.id));
-  const decide = (d: Pick<Decision, 'status' | 'note'>) =>
-    decision &&
-    setDecision({ ...decision, ...d, decidedBy: people.office.name, decidedAt: clock() });
+  const decide = (d: Pick<SampleDecision, 'status' | 'note'>) =>
+    decision && setDecision({ ...decision, ...d, decidedBy: me, decidedAt: clock() });
 
   return (
     <div className="flex min-h-full flex-col">
@@ -593,7 +481,7 @@ function Detail({
             <span className="text-muted-foreground">
               {decision.status === 'Approved'
                 ? `${decision.decidedBy ?? 'The office commander'} approved this selection.`
-                : `Waiting for ${people.office.name} to approve.`}
+                : 'Waiting for an office commander to approve.'}
             </span>
           </p>
         ) : (
@@ -603,7 +491,7 @@ function Detail({
                 ? 'Tick the responders to send.'
                 : `${String(picked.length)} selected`}
             </span>
-            <Button variant="outline" disabled title="Not in this prototype">
+            <Button variant="outline" disabled title="Not connected yet">
               Reject
             </Button>
             <Button
@@ -612,7 +500,7 @@ function Detail({
                 setDecision({
                   status: 'Awaiting approval',
                   picked,
-                  selectedBy: people.onsite.name,
+                  selectedBy: me,
                   selectedAt: clock(),
                 })
               }

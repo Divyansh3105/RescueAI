@@ -1,4 +1,4 @@
-// Plain en/hi dictionaries, no i18n library (D-040, AD15). Citizen and volunteer screens only.
+// Plain en/hi dictionaries, no i18n library (D-040, AD15). Citizen, volunteer and sign-in screens only.
 export type Lang = 'en' | 'hi';
 
 const en = {
@@ -73,6 +73,62 @@ const en = {
   acceptedCount: 'Accepted',
   completedCount: 'Completed',
   sharedOk: 'Location shared.',
+  // Sign in
+  signInTitle: 'Sign in to RescueAI',
+  signInIntro:
+    'For volunteers and rescue commanders. You do not need to sign in to ask for rescue.',
+  askRescueLink: 'Ask for rescue without signing in',
+  signIn: 'Sign in',
+  signingIn: 'Signing in…',
+  loginPhoneHint: '10-digit mobile number',
+  password: 'Password (required)',
+  showPassword: 'Show password',
+  passwordShort: 'Password must be at least 8 characters.',
+  loginWrongTitle: 'Could not sign in',
+  loginWrong: 'The mobile number or password is wrong. Check both and try again.',
+  networkError: 'Could not reach RescueAI. Check your connection and try again.',
+  registerPrompt: 'New volunteer?',
+  registerLink: 'Register',
+  forgotPassword: 'Forgot your password? Ask the Admin to reset it.',
+  signOut: 'Sign out',
+  loading: 'Loading…',
+  cannotReach: 'Could not reach RescueAI',
+  checkConnection: 'Check your connection and try again.',
+  tryAgain: 'Try again',
+  notFoundTitle: 'This page doesn’t exist.',
+  notFoundBody: 'Check the address, or go back to the start.',
+  goHome: 'Go to your home page',
+  // Shells and volunteer screens
+  staffSignIn: 'Volunteer or commander? Sign in',
+  skipToContent: 'Skip to content',
+  menu: 'Menu',
+  profile: 'Profile',
+  sampleNote: 'Sample data — not connected yet.',
+  rejectedLabel: 'Rejected',
+  noHistory: 'Nothing recorded yet.',
+  statusAccepted: 'Accepted',
+  statusCompleted: 'Completed',
+  statusDeclined: 'Declined',
+  skillFirstAid: 'First aid',
+  skillSwimming: 'Swimming',
+  skillBoat: 'Boat handling',
+  skillLifting: 'Heavy lifting',
+  skillDriving: 'Driving',
+  skillLanguage: 'Local language',
+  profileSkillsHint:
+    'A commander verifies each skill. Only verified skills count for rescue offers.',
+  // Volunteer registration (F2)
+  registerTitle: 'Register as a volunteer',
+  registerIntro: 'Commanders verify your skills before you get rescue offers.',
+  fullName: 'Full name (required)',
+  nameMissing: 'Enter your name.',
+  newPassword: 'Choose a password (required)',
+  passwordHint: 'At least 8 characters.',
+  skillsLegend: 'Your skills',
+  skillsHint: 'Tick what you can do. A commander verifies each skill.',
+  register: 'Register',
+  registerNotConnected: 'Registration is not connected yet. Your details were not sent.',
+  haveAccount: 'Already registered? Sign in',
 };
 
 const hi: typeof en = {
@@ -146,6 +202,72 @@ const hi: typeof en = {
   acceptedCount: 'स्वीकार किए',
   completedCount: 'पूरे किए',
   sharedOk: 'लोकेशन साझा हो गई।',
+  signInTitle: 'RescueAI में साइन इन करें',
+  signInIntro: 'स्वयंसेवकों और बचाव कमांडरों के लिए। बचाव माँगने के लिए साइन इन की ज़रूरत नहीं है।',
+  askRescueLink: 'बिना साइन इन किए बचाव माँगें',
+  signIn: 'साइन इन करें',
+  signingIn: 'साइन इन हो रहा है…',
+  loginPhoneHint: '10 अंकों का मोबाइल नंबर',
+  password: 'पासवर्ड (ज़रूरी)',
+  showPassword: 'पासवर्ड दिखाएँ',
+  passwordShort: 'पासवर्ड कम से कम 8 अक्षरों का होना चाहिए।',
+  loginWrongTitle: 'साइन इन नहीं हो सका',
+  loginWrong: 'मोबाइल नंबर या पासवर्ड गलत है। दोनों जाँचें और फिर कोशिश करें।',
+  networkError: 'RescueAI से संपर्क नहीं हो सका। अपना कनेक्शन जाँचें और फिर कोशिश करें।',
+  registerPrompt: 'नए स्वयंसेवक?',
+  registerLink: 'रजिस्टर करें',
+  forgotPassword: 'पासवर्ड भूल गए? एडमिन से रीसेट करवाएँ।',
+  signOut: 'साइन आउट',
+  loading: 'लोड हो रहा है…',
+  cannotReach: 'RescueAI से संपर्क नहीं हो सका',
+  checkConnection: 'अपना कनेक्शन जाँचें और फिर कोशिश करें।',
+  tryAgain: 'फिर कोशिश करें',
+  notFoundTitle: 'यह पेज मौजूद नहीं है।',
+  notFoundBody: 'पता जाँचें, या शुरुआत पर वापस जाएँ।',
+  goHome: 'अपने होम पेज पर जाएँ',
+  staffSignIn: 'स्वयंसेवक या कमांडर? साइन इन करें',
+  skipToContent: 'मुख्य सामग्री पर जाएँ',
+  menu: 'मेन्यू',
+  profile: 'प्रोफ़ाइल',
+  sampleNote: 'नमूना डेटा — अभी जुड़ा नहीं है।',
+  rejectedLabel: 'अस्वीकृत',
+  noHistory: 'अभी कुछ दर्ज नहीं है।',
+  statusAccepted: 'स्वीकार किया',
+  statusCompleted: 'पूरा हुआ',
+  statusDeclined: 'मना किया',
+  skillFirstAid: 'प्राथमिक चिकित्सा',
+  skillSwimming: 'तैराकी',
+  skillBoat: 'नाव चलाना',
+  skillLifting: 'भारी सामान उठाना',
+  skillDriving: 'गाड़ी चलाना',
+  skillLanguage: 'स्थानीय भाषा',
+  profileSkillsHint:
+    'हर कौशल को कमांडर सत्यापित करते हैं। बचाव प्रस्तावों में सिर्फ़ सत्यापित कौशल गिने जाते हैं।',
+  registerTitle: 'स्वयंसेवक के रूप में रजिस्टर करें',
+  registerIntro: 'बचाव प्रस्ताव मिलने से पहले कमांडर आपके कौशल सत्यापित करते हैं।',
+  fullName: 'पूरा नाम (ज़रूरी)',
+  nameMissing: 'अपना नाम लिखें।',
+  newPassword: 'पासवर्ड चुनें (ज़रूरी)',
+  passwordHint: 'कम से कम 8 अक्षर।',
+  skillsLegend: 'आपके कौशल',
+  skillsHint: 'जो काम आप कर सकते हैं उन्हें चुनें। हर कौशल को कमांडर सत्यापित करते हैं।',
+  register: 'रजिस्टर करें',
+  registerNotConnected: 'रजिस्ट्रेशन अभी जुड़ा नहीं है। आपकी जानकारी भेजी नहीं गई।',
+  haveAccount: 'पहले से रजिस्टर हैं? साइन इन करें',
 };
 
 export const dict = { en, hi };
+
+export type Dict = typeof en;
+
+const skillKeys = {
+  'First Aid': 'skillFirstAid',
+  Swimming: 'skillSwimming',
+  'Boat Handling': 'skillBoat',
+  'Heavy Lifting': 'skillLifting',
+  Driving: 'skillDriving',
+  'Local Language Proficiency': 'skillLanguage',
+} as const satisfies Record<string, keyof Dict>;
+
+/** A skill's name in the chosen language. */
+export const skillName = (t: Dict, skill: keyof typeof skillKeys) => t[skillKeys[skill]];

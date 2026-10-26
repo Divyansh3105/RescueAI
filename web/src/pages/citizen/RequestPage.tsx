@@ -6,17 +6,19 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
-import { dict, type Lang } from './i18n';
-import { LangSwitch } from './parts';
+import { SampleDataNote } from '@/components/SampleDataNote';
+import type { Dict } from '@/i18n/dictionaries';
+import { useLang } from '@/i18n/use-lang';
+import { CitizenShell } from '@/shells/CitizenShell';
 
 type Coords = { lat: number; lon: number; accuracy: number };
-type Errors = Partial<Record<'location' | 'hazard' | 'phone', string>>;
+type Errors = Partial<Record<'location' | 'hazard' | 'phone', keyof Dict>>;
 
 const flagKeys = ['children', 'elderly', 'injuredFlag', 'disability'] as const;
 
-export function CitizenForm() {
-  const [lang, setLang] = useState<Lang>('en');
-  const t = dict[lang];
+/** The citizen rescue request form (PRD F1). Sample only: submit does not call the API yet. */
+export function RequestPage() {
+  const [, , t] = useLang();
 
   const [coords, setCoords] = useState<Coords | null>(null);
   const [locState, setLocState] = useState<'idle' | 'busy' | 'denied'>('idle');
@@ -36,9 +38,9 @@ export function CitizenForm() {
 
   function validate(next = { coords, hazard, phone }): Errors {
     const e: Errors = {};
-    if (!next.coords) e.location = t.locationMissing;
-    if (!next.hazard) e.hazard = t.hazardMissing;
-    if (!/^[6-9]\d{9}$/.test(next.phone.replace(/\s/g, ''))) e.phone = t.phoneBad;
+    if (!next.coords) e.location = 'locationMissing';
+    if (!next.hazard) e.hazard = 'hazardMissing';
+    if (!/^[6-9]\d{9}$/.test(next.phone.replace(/\s/g, ''))) e.phone = 'phoneBad';
     return e;
   }
 
@@ -78,7 +80,7 @@ export function CitizenForm() {
 
   if (refId) {
     return (
-      <Shell lang={lang} setLang={setLang}>
+      <CitizenShell title={t.appTitle}>
         <section aria-live="polite" className="space-y-6">
           <div className="space-y-1">
             <p className="text-sm font-medium text-green-700">✓ {t.sentTitle}</p>
@@ -105,21 +107,22 @@ export function CitizenForm() {
             {t.sentAgain}
           </Button>
         </section>
-      </Shell>
+      </CitizenShell>
     );
   }
 
   const errText = (id: keyof Errors) =>
     errors[id] && (
       <p id={`${id}-error`} className="text-sm text-red-700">
-        {errors[id]}
+        {t[errors[id]!]}
       </p>
     );
 
   return (
-    <Shell lang={lang} setLang={setLang}>
+    <CitizenShell title={t.appTitle}>
       <h1 className="text-2xl font-semibold">{t.appTitle}</h1>
       <p className="text-muted-foreground">{t.appIntro}</p>
+      <SampleDataNote text={t.sampleNote} />
 
       <form noValidate onSubmit={submit} className="space-y-6">
         <fieldset className="space-y-2">
@@ -283,32 +286,6 @@ export function CitizenForm() {
           {t.submit}
         </Button>
       </form>
-    </Shell>
-  );
-}
-
-function Shell({
-  lang,
-  setLang,
-  children,
-}: {
-  lang: Lang;
-  setLang: (l: Lang) => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <div lang={lang} className="bg-muted flex flex-1 flex-col">
-      <main
-        id="content"
-        className="bg-background mx-auto w-full max-w-lg flex-1 space-y-6 px-4 pt-2 pb-12 sm:border-x"
-      >
-        <div className="flex items-center justify-between border-b pb-1">
-          <span className="font-semibold">RescueAI</span>
-          <LangSwitch lang={lang} setLang={setLang} />
-        </div>
-        <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{dict[lang].call112}</p>
-        {children}
-      </main>
-    </div>
+    </CitizenShell>
   );
 }
