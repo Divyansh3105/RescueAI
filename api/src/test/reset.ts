@@ -5,5 +5,5 @@ import { db } from '../db/client.js';
 // ponytail: runs as the app role; switch to the separate truncate role (D-038) once the
 // audit table exists and the app role loses DELETE on it.
 export async function truncateAll(): Promise<void> {
-  await db.execute(sql`truncate table sessions, users cascade`);
+  await db.execute(sql`truncate table rescue_requests, sessions, users cascade`);
 }

@@ -3,13 +3,21 @@ import path from 'node:path';
 import express, { type ErrorRequestHandler } from 'express';
 import { loadSession } from './auth/middleware.js';
 import { pingDb } from './db/client.js';
+import { env } from './env.js';
 import { authRouter } from './routes/auth.js';
+import { queueRouter, requestsRouter } from './routes/requests.js';
 
 export const app = express();
+
+// Behind Render's proxy req.ip is the proxy unless this is set; the rate limit keys on it.
+// ponytail: assumes one proxy hop. Check X-Forwarded-For on the deployed site before relying on D-036.
+if (env.isProduction) app.set('trust proxy', 1);
 
 app.use(express.json());
 app.use('/api', loadSession);
 app.use('/api/auth', authRouter);
+app.use('/api/requests', requestsRouter);
+app.use('/api/queue', queueRouter);
 
 app.get('/api/health', (_req, res) => {
   void pingDb().then((db) => res.json({ status: 'ok', db: db ? 'up' : 'down' }));

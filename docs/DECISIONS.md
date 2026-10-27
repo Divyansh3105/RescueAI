@@ -1288,3 +1288,45 @@ One code path applies migrations everywhere, and a deploy can't start on an old 
 A failing migration stops the service from starting; that is the safe failure. With one instance there is no race between instances.
 ### Consequences
 `ARCHITECTURE.md` -> Deployment notes it. `npm run db:migrate` stays for local use.
+
+## D-054 Mentor formula questions: team recommendations adopted as Provisional
+
+### Date
+2026-10-27
+### Status
+Accepted. Provisional until Mr. Chauhan answers or Phase 6 re-checks it. The owner confirmed on 2026-10-27 to go with the recommendations.
+### Context
+`MENTOR-REVIEW.md` (written 2026-09-22, recoverable with `git show 6b47714:MENTOR-REVIEW.md`) asked the mentor to decide three formula parameters by Oct 15, for Paper Part 2 (due Oct 20). The committed copy has no ticked boxes and no reply is recorded anywhere in the repository. The document said that with no answer the team would proceed with its recommendations.
+### Options Considered
+Keep waiting, or adopt the recommendations now and mark them Provisional.
+### Decision
+1. Severity scaling stays `Sev = (severity − 1) ÷ 4`.
+2. The team score stays `(w1·Capability + w2·Proximity) ÷ (w1 + w2)`. The Admin weights form must reject w1 + w2 = 0, which would divide by zero. Teams have no Freshness or Reliability term by design.
+3. Freshness stays `max(0, 1 − age ÷ 120)`, but the 120-minute window is an Admin setting stored on the settings row next to the weights.
+
+All three are marked `[Provisional]` in PRD F6 and F7 and listed for Phase 6.
+### Reasoning
+Every other term spans a true 0 to 1, and "severity 4 of 5, so 0.75" needs no explanation. Separate team weights would add numbers to set and justify without evidence. A tunable window lets Phase 6 try 60, 120 and 240 minutes against scenario data without a redeploy.
+### Trade-offs
+The paper must say these are the team's own choices, not mentor-confirmed. A blank count scores severity 1, so a sparse queue sits at Sev = 0; the answer is to re-tune the band cutoffs, not the curve. The two bonus questions in the document (an NDMA/SDRF triage convention to replace the D-047 table, and mentor access to serving SDRF/NDRF staff for SM3) are still unanswered.
+### Consequences
+PRD open items 2, 3 and 6 are closed; F6, F7, the Provisional list, ARCHITECTURE (settings row) and PLAN updated. Not yet in code: the w1 + w2 > 0 check in `web/src/pages/admin/weights.ts` and the API, and the window field on the settings row, which come with the Admin weights work. If the mentor answers differently, supersede this entry rather than rewriting it.
+
+## D-055 Request intake and queue: implementation choices for the Phase-I demo slice
+
+### Date
+2026-10-27
+### Status
+Accepted.
+### Context
+The Phase-I demo slice (PLAN Phase 2) needed the first rescue request table, the public submission route and a commander queue.
+### Decision
+- Table `rescue_requests` with enums for hazard and status (`pending`, `in_progress`, `resolved`, `cancelled`) and CHECK constraints on coordinates, severity 1-5 and non-negative counts. The four vulnerability flags are four boolean columns. Severity is stored at insert (F5); the override column comes with F5's override work.
+- The reference ID is `RQ-` plus an identity column that starts at 1000 (D-037), not a random 4-digit code, so IDs cannot collide.
+- `POST /api/requests` is public and rate-limited by a small in-memory fixed-window limiter (30 per 10 minutes per IP, D-036), not a new dependency. `trust proxy` is set to 1 in production so the limit keys on the citizen's IP.
+- `GET /api/queue` returns the scored, sorted rows, including the citizen's phone number, to on-site and office commanders only. Scoring runs on the server in `api/src/scoring/request.ts`; the SPA only displays it.
+- Weights are the PRD defaults (equal) in a constant until the Admin settings row exists (AC10).
+### Trade-offs
+The limiter is per process and fixed-window: fine for one Render instance. `trust proxy` = 1 assumes one proxy hop and has not been checked on the deployed site. The on-site queue is live but its recommendation and selection controls are not connected; the office commander's screen is still sample data.
+### Consequences
+`AGENTS.md`, `TESTING.md` and `MEMORY.md` updated. Supersedes nothing.

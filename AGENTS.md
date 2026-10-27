@@ -2,7 +2,7 @@
 
 Canonical instructions for AI coding agents working on RescueAI. Read this first on every task.
 
-> **Project state (2026-10-26): login works, every screen exists on sample data.** `web/` and `api/` build, lint, type-check and test. `docker compose up` serves the SPA and the API from one origin; it deploys to Render (free) with Neon PostgreSQL (D-044). GitHub Actions runs the checks on every pull request. **Built:** phone + password login with server sessions (`users` and `sessions` tables, `/api/auth/*`, role guard; D-052), and every MVP screen for all five roles. **Every screen except sign-in shows sample data from `web/src/sample/` and calls no API** - don't describe them as working features. No other PRD feature (F1-F14) is implemented on the server. Any section below that says **Not established** must be filled in, in the same change that establishes it.
+> **Project state (2026-10-27): login and the first request slice work; every other screen is sample data.** `web/` and `api/` build, lint, type-check and test. `docker compose up` serves the SPA and the API from one origin; it deploys to Render (free) with Neon PostgreSQL (D-044). GitHub Actions runs the checks on every pull request. **Built:** phone + password login with server sessions (`users` and `sessions` tables, `/api/auth/*`, role guard; D-052), and every MVP screen for all five roles. **Live (2026-10-27):** the citizen request form (F1, partial: no map pin, Hindi strings for the new messages unreviewed) posts to `POST /api/requests`, and the on-site commander's queue (F6, partial) reads `GET /api/queue`, scored by `api/src/scoring/request.ts` (F5 automatic severity, P(r)). **Every other screen shows sample data from `web/src/sample/` and calls no API** (including the office commander's queue) - don't describe them as working features. No other PRD feature (F2-F14) is implemented on the server. Any section below that says **Not established** must be filled in, in the same change that establishes it.
 
 ## Project Overview
 
@@ -80,7 +80,7 @@ web/                   React SPA (Vite, Tailwind v4, shadcn/ui, TanStack Query)
   src/router.ts        tiny History-API router (usePath, navigate); <Link> is components/Link.tsx
   src/auth/            useSession / useLogin / useLogout and the <RequireRole> guard
   src/shells/          CitizenShell, VolunteerShell, CommanderShell (also used by the Admin)
-  src/pages/           one component per screen (login, citizen, volunteer, commander, admin)
+  src/pages/           one component per screen (login, citizen, volunteer, commander, admin). citizen/RequestPage and commander/LiveQueue are live; the rest are sample
   src/i18n/            en/hi dictionaries (identical keys, tested) and useLang
   src/components/      domain composites (domain.tsx), LangSwitch, Link; ui/ is shadcn CLI output
   src/sample/data.ts   synthetic data behind every screen that isn't connected yet
@@ -89,10 +89,11 @@ web/                   React SPA (Vite, Tailwind v4, shadcn/ui, TanStack Query)
 api/                   Express API (strict TypeScript)
   src/app.ts           Express app: /api/health, loadSession, /api/auth, 404 and error handler (D-035)
   src/auth/            phone rule, session service (bcrypt, SHA-256 token hashes), requireRole
-  src/routes/          HTTP handlers; auth.ts (login, logout, me) is the only one so far
-  src/services/        not created yet - business rules
-  src/scoring/         not created yet - pure ranking functions
-  src/db/              Drizzle client, schema (users, sessions), migrate.ts, seed.ts
+  src/routes/          HTTP handlers: auth.ts (login, logout, me), requests.ts (public POST /api/requests, commander GET /api/queue), http.ts (validation error helper)
+  src/services/        business rules; requests.ts (create a request, build the queue)
+  src/scoring/         pure ranking functions; request.ts (F5 severity, F6 P(r), band, sort)
+  src/rate-limit.ts    in-memory per-IP limiter used by the public request route (D-036, D-055)
+  src/db/              Drizzle client, schema (users, sessions, rescue_requests), migrate.ts, seed.ts
   src/test/            integration-test global setup (migrate) and truncateAll()
   drizzle/             generated migrations, applied at API start-up (D-053)
   drizzle.config.ts    drizzle-kit config

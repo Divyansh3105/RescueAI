@@ -2,7 +2,7 @@
 
 **Product:** RescueAI — Explainable Decision Support for Disaster Rescue and Volunteer Coordination
 **Source:** Project synopsis CSE27-364 (Graphic Era Hill University, Sept 2026)
-**Status:** Draft v2 (2026-09-15). MVP scope agreed and owner decisions recorded, but not yet formally approved.
+**Status:** Draft v2 (2026-09-15). MVP scope agreed and owner decisions recorded. Approved by the owner on 2026-10-27 (told in chat).
 - Items marked **[Assumption]** are proposed but not confirmed.
 - Items marked **[Provisional]** are decided for now and must be reconsidered against scenario data in Phase 6.
 - See the last section for both lists.
@@ -126,7 +126,7 @@ During disaster response, commanders decide which rescue request to serve first 
 **F6 — Prioritized request queue**
 - The queue shows Pending and In-Progress requests, sorted by priority score:
   `P(r) = α·Sev(r) + β·Vul(r) + γ·Wait(r)`, with each term normalized to [0, 1] and α + β + γ = 1.
-  - `Sev` is the normalized severity. **[Assumption]** `Sev = (severity − 1) ÷ 4`, so severity 1 contributes 0.
+  - `Sev` is the normalized severity. **[Provisional]** `Sev = (severity − 1) ÷ 4`, so severity 1 contributes 0 (D-054).
   - `Vul` is the number of vulnerability flags present divided by 4.
   - `Wait = min(minutes since submission ÷ 60, 1)`. A request gets the full wait score after 1 hour, so older requests are not starved by newer ones. **[Provisional]**
 - Each row shows its score and the three components.
@@ -138,13 +138,13 @@ During disaster response, commanders decide which rescue request to serve first 
 - Volunteer score: `S(v,r) = w1·Skill + w2·Proximity + w3·Freshness + w4·Reliability`, with each term normalized to [0, 1].
   - Skill = |required ∩ verified| / |required|.
   - Proximity = max(0, 1 − d ÷ 25 km), where d is the straight-line distance from the volunteer's last-known location to the request location. A volunteer 25 km or more away gets 0.
-  - Freshness = max(0, 1 − location age in minutes ÷ 120). It measures how recent the volunteer's last-known location is. A location 2 hours old or older gets 0. **[Assumption]** The 2-hour window.
+  - Freshness = max(0, 1 − location age in minutes ÷ 120). It measures how recent the volunteer's last-known location is. A location 2 hours old or older gets 0. **[Provisional]** The 2-hour window (D-054). It is an Admin setting (the Freshness window, in minutes, default 120), not a constant, so Phase 6 can try other values without a redeploy.
   - Reliability = completed ÷ (offered − withdrawn). Declined offers count against the volunteer; offers a commander withdrew do not. It is 0.5 for a volunteer with no counted offers.
   - **Eligibility:** only volunteers who are Available, have no active assignment and have at least one verified skill are ranked. An old location does not exclude a volunteer; it lowers their Freshness instead.
-- Team score uses capability match and proximity. Only Available teams are ranked. **[Assumption]** Team score = (w1·Capability + w2·Proximity) ÷ (w1 + w2). Capability is computed like Skill, and Proximity like the volunteer term, from the team's base location.
+- Team score uses capability match and proximity. Only Available teams are ranked. **[Provisional]** Team score = (w1·Capability + w2·Proximity) ÷ (w1 + w2) (D-054). Capability is computed like Skill, and Proximity like the volunteer term, from the team's base location. Teams have no Freshness or Reliability term by design: a team has a fixed base and no offer history.
 - The shortlist shows the top 10 volunteers and top 10 teams.
-- The Admin can change the weights (w1–w4, α, β, γ) without a code change.
-  - w1 + w2 + w3 + w4 = 1 and α + β + γ = 1. The Admin form rejects weights that don't sum to 1.
+- The Admin can change the weights (w1–w4, α, β, γ) and the Freshness window without a code change.
+  - w1 + w2 + w3 + w4 = 1 and α + β + γ = 1. The Admin form rejects weights that don't sum to 1, and rejects w1 + w2 = 0, which would divide the team score by zero (D-054).
   - Initial weights are equal (each w = 0.25; α = β = γ = 1/3) until domain-informed values exist.
 
 **F8 — Explanation**
@@ -388,17 +388,18 @@ were set on 2026-09-15 without domain data and are not predictions.
 
 **Still to confirm ([Assumption]):**
 1. ~~The severity rule table (F5).~~ **Closed 2026-09-18 (D-047):** a provisional points table is now in F5. It is `[Provisional]`, not confirmed by domain consultation.
-2. Severity scaling `(severity − 1) ÷ 4` (F6).
-3. The team score formula (F7).
+2. ~~Severity scaling `(severity − 1) ÷ 4` (F6).~~ **Closed 2026-10-27 (D-054) as `[Provisional]`:** no mentor reply was recorded by Oct 15, so the team's recommendation was adopted.
+3. ~~The team score formula (F7).~~ **Closed 2026-10-27 (D-054) as `[Provisional]`**, with the w1 + w2 > 0 safeguard added.
 4. ~~No shared commander action is restricted to one commander type (Target Users).~~ **Closed 2026-09-22 (D-050):** confirmed as written, and the missing mirror rule added - an office commander can never create a selection, and the selector and approver must be different accounts.
 5. ~~The office commander approves a selection exactly as sent and cannot edit it (F9).~~ **Closed 2026-09-22 (D-050):** confirmed as written, and approval is explicitly all-or-nothing.
-6. The 2-hour window in the Freshness term (F7).
+6. ~~The 2-hour window in the Freshness term (F7).~~ **Closed 2026-10-27 (D-054) as `[Provisional]`**, and made an Admin setting.
 7. ~~**Password reset is missing.**~~ **Closed 2026-09-22 (D-051):** the Admin can reset any user's password to a one-time temporary value. See AC25. Self-service recovery stays out of scope, because the MVP collects no email address and has no SMS.
 
 **Provisional: reconsider against scenario data in Phase 6 ([Provisional]):**
 - Priority band cutoffs: Critical ≥ 0.70, High ≥ 0.50 (F6). Decided 2026-09-15.
 - Wait reaches its maximum after 60 minutes (F6). Decided 2026-09-15.
 - The severity rule table, including scoring a blank count as 0 (F5). Decided 2026-09-18, D-047.
+- Severity scaling `(severity − 1) ÷ 4` (F6), the team score formula with its w1 + w2 > 0 safeguard (F7), and the 2-hour Freshness window (F7). Adopted 2026-10-27, D-054, with no mentor answer on record. If Mr. Chauhan answers differently, supersede D-054.
 
 **Confirmed by the owner on 2026-09-15** (details in `DECISIONS.md` D-026 to D-034):
 - Proximity falls to 0 at 25 km.

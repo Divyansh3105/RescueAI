@@ -34,6 +34,11 @@ const en = {
   sentTitle: 'Your request has been sent',
   sentRef: 'Your reference number',
   sentAgain: 'Send another request',
+  sending: 'Sending…',
+  sendFailed: 'Your request was not sent. Check your connection and try again.',
+  rateLimited:
+    'Too many requests from this network. Wait a few minutes and try again, or call 112.',
+  countsBad: 'Enter whole numbers for the number of people, or leave them blank.',
   sentKeep: 'Note this number down. Say it if you call the control room.',
   nextTitle: 'What happens next',
   next1: 'A rescue commander sees your request, ranked by how urgent it is.',
@@ -164,6 +169,11 @@ const hi: typeof en = {
   sentTitle: 'आपका अनुरोध भेज दिया गया है',
   sentRef: 'आपका संदर्भ नंबर',
   sentAgain: 'एक और अनुरोध भेजें',
+  sending: 'भेजा जा रहा है…',
+  sendFailed: 'आपका अनुरोध नहीं भेजा गया। अपना कनेक्शन जाँचें और फिर कोशिश करें।',
+  rateLimited:
+    'इस नेटवर्क से बहुत अधिक अनुरोध आए हैं। कुछ मिनट रुककर फिर कोशिश करें, या 112 पर कॉल करें।',
+  countsBad: 'लोगों की संख्या पूरी संख्या में लिखें, या खाली छोड़ दें।',
   sentKeep: 'यह नंबर लिख लें। कंट्रोल रूम को फ़ोन करें तो यही नंबर बताएँ।',
   nextTitle: 'आगे क्या होगा',
   next1: 'बचाव कमांडर आपका अनुरोध देखेंगे, जो तात्कालिकता के अनुसार क्रम में होगा।',
