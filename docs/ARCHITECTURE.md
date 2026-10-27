@@ -154,7 +154,7 @@ erDiagram
 - **ASSIGNMENT:** one responder (volunteer or team) on one request, with offer status and timestamps.
 - **SELECTION:** the responders an on-site commander chose for one request, the required skills used, and a status (awaiting approval / approved / sent back). It records who selected, who approved or sent back, and when. Assignments are created only when a selection is approved (PRD F9). It does **not** copy the explanation snapshot; that lives in the audit entry alone (D-042).
 - **Location request (PRD F2):** the latest "share your location" request is an actor and a timestamp on the settings row, not a table (D-042). A volunteer sees the banner while their own location timestamp is older than that time, and the audit log keeps the history.
-- **SCORING_WEIGHTS (the settings row):** w1–w4, α, β, γ, plus the latest location-request actor and time. Editable by the Admin (PRD AC10). Each weight group must sum to 1, checked with zod in the API — no database CHECK constraint, because floating-point sums make it fragile and only the Admin writes this row (D-042).
+- **SCORING_WEIGHTS (the settings row):** w1–w4, α, β, γ, the Freshness window in minutes (default 120, D-054), plus the latest location-request actor and time. Editable by the Admin (PRD AC10). Each weight group must sum to 1, checked with zod in the API — no database CHECK constraint, because floating-point sums make it fragile and only the Admin writes this row (D-042).
 - **AUDIT_ENTRY:** actor, action, target, timestamp, and a JSON snapshot of the recommendation and explanation that was shown. **Append-only.**
 
 **Rules:**

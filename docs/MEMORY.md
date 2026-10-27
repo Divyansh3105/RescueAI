@@ -1,14 +1,14 @@
 # Project Memory
 
-_Last updated: 2026-10-26 (frontend screens and working login). Update this after every meaningful session and delete anything that's out of date._
+_Last updated: 2026-10-27 (Phase-I demo slice: request intake and queue; mentor formulas adopted as Provisional). Update this after every meaningful session and delete anything that's out of date._
 
 ## Current Status
 
 - **Login works; every screen exists on sample data (merged to `main` 2026-10-26 as PR #5).** Deployed and checked live: `/api/health` ok with the database up, `/api/auth/login` answers from the new `users` table (migrations ran on Neon), SPA deep links load. See the 2026-10-26 entry below.
 - **Before that: scaffolded, no features.** It is a git repository now, pushed to <https://github.com/Divyansh3105/RescueAI> on `main`, with CI green. `web/` and `api/` exist, build, lint, type-check and each pass one trivial test. **Deployed and live at <https://rescueai-70mu.onrender.com>** (Render free, Singapore, auto-deploy from `main`), reading from Neon. `docker compose up` builds the same image locally and serves it from `http://localhost:3000` - verified on 2026-09-18: health returned `{"status":"ok","db":"up"}`, the SPA rendered it in a browser, a deep route fell back to `index.html`, and an unknown `/api/*` route returned the D-035 error shape.
-- **Only login is implemented on the server.** Tables: `users`, `sessions`. Routes: `/api/health`, `/api/auth/login|logout|me`. No requests, scoring, decisions or audit table yet.
+- **Server features so far: login and the first request slice (branch `feat/request-slice`, 2026-10-27, not committed or merged yet).** Tables: `users`, `sessions`, `rescue_requests`. Routes: `/api/health`, `/api/auth/login|logout|me`, public `POST /api/requests`, commander `GET /api/queue`. Scoring: `api/src/scoring/request.ts` (F5 severity, P(r), band, sort). No selections, assignments, weights or audit table yet.
 - The documentation set: `PRD.md`, `AGENTS.md` (the entry point), `DESIGN.md`, `ARCHITECTURE.md`, `RULES.md`, `DECISIONS.md`, `TESTING.md`, `PLAN.md`, `MEMORY.md`, and `CLAUDE.md` (which just imports AGENTS.md).
-- The stack, tooling and coding rules are decided. The PRD is **Draft v2** and still **not formally approved**.
+- The stack, tooling and coding rules are decided. The PRD is **Draft v2** approved by the owner on 2026-10-27.
 
 ## Recently Completed
 
@@ -68,17 +68,33 @@ Session 2026-10-26 (frontend + login, plan `docs/superpowers/plans/2026-10-26-fr
 - **Not used on purpose:** GSAP, Lenis, React Bits (the owner's global UI default). DESIGN.md forbids decorative motion and a second component library; the owner approved the plan that said so.
 - Verified by hand in the preview browser: sign-in for all four roles, wrong-role redirects, `?next=` open-redirect guard, logout, network-failure Alert keeping values, Hindi at 375 px. Docker image: migrations on boot, seed inside the image (`node dist/db/seed.js`), login and SPA deep links.
 
+Session 2026-10-27 (Phase-I demo slice, branch `feat/request-slice`, not committed):
+- **Scoring:** `api/src/scoring/request.ts` - F5 severity table, P(r) with per-factor contributions that add up (AC9), band, and the AC5 comparator (older first on a tie). 15 unit tests named with AC3 / AC5 / AC9.
+- **Table:** `rescue_requests` (migration 0001) with enums for hazard and status and CHECKs on coordinates, severity and counts. Reference ID = `RQ-` + an identity starting at 1000. `truncateAll()` includes it.
+- **API:** `POST /api/requests` (public, 30 per 10 min per IP via `api/src/rate-limit.ts`, D-035 errors, returns only the reference ID) and `GET /api/queue` (on-site and office commanders; includes the phone number). `phoneField` and `validationFailed` were pulled out of the login route to be shared.
+- **Web:** `citizen/RequestPage` posts for real; new `commander/LiveQueue` polls every 5 s with the score breakdown. `QueuePage` sends the office commander to the old sample screen. The on-site sample "select and send for approval" flow is no longer reachable until selections exist for real.
+- **Checked by hand** in the preview browser against a local Postgres: submitted a landslide request (3 trapped, 1 injured -> severity 5), saw it in the queue as RQ-1000 with the phone and a breakdown that sums. Fixed a stale-closure bug in the vulnerability checkboxes found on the way. Not checked: Hindi, a real phone, the deployed site.
+- **Docs:** D-054 (mentor formulas, Provisional), D-055 (slice choices); PRD, ARCHITECTURE, PLAN, AGENTS, TESTING updated.
+
 ## Currently In Progress
 
-- Nothing is half-done. The login and screens work is merged (PR #5, merge commit da3ebc8; its 8 commits are dated Oct 24-25). Neon is seeded, so there is nothing left over from the login work.
+- **Branch `feat/request-slice` holds uncommitted work** (nothing committed or pushed, at the owner's instruction): the request table + migration `0001`, scoring and its tests, `POST /api/requests`, `GET /api/queue`, the live citizen form and on-site queue, D-054 / D-055. The owner wants to see the PRD/DECISIONS diff before anything is committed.
+- Earlier: nothing was half-done. The login and screens work is merged (PR #5, merge commit da3ebc8; its 8 commits are dated Oct 24-25). Neon is seeded, so there is nothing left over from the login work.
 
 ## Known Problems
 
-- **The PRD has not been explicitly approved** (now Draft v2). It now has **25** acceptance criteria: AC25 was added on 2026-09-22 (D-051) for the Admin password reset.
-- **Still open and needed by about Oct 15 for Paper Part 2 (Methodology):**
+### Owner confirmations (told to the agent in chat, 2026-10-27; dates, who and where still blank)
+
+- **PRD Draft v2: approved** (owner, 2026-10-27). Approval date and who approved (team only, or the mentor too): ____
+- **Paper Part 2 (Methodology): submitted** (owner, 2026-10-27). Submission date (due Oct 20): ____ Where it is stored: ____ Which formulas it states: ____ (should match D-054 and call them the team's own choices)
+- **Mentor reply to `MENTOR-REVIEW.md`:** none recorded. The owner said on 2026-10-27 to go with the team's recommendations, so D-054 stands as written. Still unasked: the two bonus questions.
+- **Phase-I Exam:** slots not announced; the owner expects them after Nov 16 (the department timeline said the window is Oct 26 - Nov 3, so check which is right). Rehearsed? ☐ Demo password kept at: ____
+
+- **The PRD (Draft v2) was approved by the owner on 2026-10-27** (the PRD header still says Draft). It now has **25** acceptance criteria: AC25 was added on 2026-09-22 (D-051) for the Admin password reset.
+- **Formula questions for Paper Part 2 (Methodology), adopted 2026-10-27 (D-054):**
   - ~~the severity rule table~~ **closed 2026-09-18 (D-047)**: a provisional points table is in PRD F5, marked `[Provisional]`. Authored from reasoning, **not** from domain consultation and **not** from `disasterIND.csv` (that file is event-level EM-DAT data with no per-request trapped/injured counts, so it cannot calibrate this rule - do not claim otherwise in the paper). The weak point is that a blank count scores 0; if Phase 6 finds the queue clusters at severity 1-2, score blanks as 1 point or make the F1 fields required.
-  - severity scaling (Sev−1)/4, the team score formula, and the 2-hour Freshness window (open items 2, 3 and 6). **`MENTOR-REVIEW.md` was written 2026-09-22** (deleted from the tree in `cef0cfb`, an unrelated commit; read it with `git show 6b47714:MENTOR-REVIEW.md`) to put these to Mr. Chauhan with the team's recommendations and a tick-box per item. **Needed back by Oct 15.** If there is no answer by then, adopt the recommendations, mark them `[Provisional]` and re-check in Phase 6.
-    - The recommendations are: keep (severity−1)/4; keep the team formula **but reject weights where w1+w2 = 0, which currently divides by zero**; keep 120 minutes **but move the window into the Admin settings row** so Phase 6 can tune it without a redeploy.
+  - severity scaling (Sev−1)/4, the team score formula, and the 2-hour Freshness window (open items 2, 3 and 6). **`MENTOR-REVIEW.md` was written 2026-09-22** (deleted from the tree in `cef0cfb`, an unrelated commit; read it with `git show 6b47714:MENTOR-REVIEW.md`) to put these to Mr. Chauhan with the team's recommendations and a tick-box per item. **Needed back by Oct 15.** No answer is recorded, so on 2026-10-27 the recommendations were adopted as `[Provisional]` (D-054); re-check in Phase 6. If the mentor did answer outside the repo, supersede D-054.
+    - The adopted recommendations are: keep (severity−1)/4; keep the team formula **but reject weights where w1+w2 = 0, which currently divides by zero**; keep 120 minutes **but move the window into the Admin settings row** so Phase 6 can tune it without a redeploy.
     - The document also asks two bonus questions: whether an NDMA/SDRF triage convention should replace the D-047 severity table, and whether the mentor can reach serving SDRF/NDRF staff for the SM3 usability study.
   - ~~whether any shared commander action belongs to one commander type, and whether the office commander can edit a selection~~ **closed 2026-09-22 (D-050)**: both confirmed as written. **The important part is what the question did not ask:** nothing said an office commander cannot *create* a selection, so one could have selected and self-approved - two audit entries, one actor, SM4 reporting full compliance. AC22 now requires that an office commander cannot select and that the selector and approver are different user accounts. Enforce this in `services/decisions` in Phase 3.
   - ~~the **evaluation method**~~ **closed 2026-09-22 (D-049)**: the protocol is in `PRD.md` under Success Metrics. Roles and constraints are fixed, names are not - **Phase 4 assigns them**. The two constraints that must not be lost: the scoring author cannot build the SM2 ground truth (circularity), and the Render instance must be warmed before every timed SM1 run (a 50 s cold start would sit inside the median).
@@ -103,7 +119,6 @@ Session 2026-10-26 (frontend + login, plan `docs/superpowers/plans/2026-10-26-fr
   - **Map marker shapes are only a prototype choice** (request = circle with the band letter, volunteer = square "V", team = diamond "T"). DESIGN.md lists them as Proposed; confirm them before Phase 5.
   - Committed as `cb47c72`.
 - **`api` has 7 npm audit findings** (6 moderate, 1 high), all from `drizzle-kit`'s dev-only esbuild chain. `npm audit fix --force` would downgrade drizzle-kit to 0.18.1, which is worse. Left as is; it never ships to production.
-- **`PLAN.md` Phase 2 still lists `LOCATION_REQUEST` in the migration list**, but D-042 replaced that table with fields on the settings row. Fix when Phase 2 starts.
 - **Ask the supervisor:** the exact January deadline, the December exam dates once published, and what the Phase-I Exam expects.
 - **December exams: handled 2026-09-22 (D-048).** Exams exist, dates undecided. Rather than wait, the plan assumes the overlap: F7 and F9 move into Phase 3 (server-side, integration-tested, no UI), **AC11 and AC22 now close in Phase 3**, Phase 4 becomes the UI phase with a written cut order, the freeze moves Jan 10 to Jan 17, and scenario data starts in Phase 3.
   - **Phase 3 is now the heaviest phase in the plan.** If it slips, the December squeeze happens anyway with less warning. Check it in mid-November.
@@ -136,10 +151,13 @@ Session 2026-10-26 (frontend + login, plan `docs/superpowers/plans/2026-10-26-fr
 
 ## Next Steps
 
-0. **Connect screens one feature at a time**, deleting their use of `web/src/sample/`. Next in `PLAN.md` Phase 2: the remaining tables (volunteer profile and skills, teams, requests, selections, assignments, weights, audit with INSERT/SELECT-only grants), then request intake (F1) and scoring.
+0a. **Owner: look at the diff on `feat/request-slice`, then say commit.** Then open a PR (CI needs a Postgres service, already configured). After merge, check the deployed site: submit a request, sign in as the on-site commander (phone 9000000002), see it in the queue, and check `X-Forwarded-For` once to confirm `trust proxy = 1` gives the citizen's IP, not Render's.
+0b. **Code owed by D-054:** reject w1 + w2 = 0 in `web/src/pages/admin/weights.ts` and later in the API; add the Freshness window to the settings row.
+0c. **Owed by the slice:** Hindi review of the four new strings (`sending`, `sendFailed`, `rateLimited`, `countsBad`); map pin on the citizen form (F1); the office commander's queue is still sample data.
+0d. **Connect screens one feature at a time**, deleting their use of `web/src/sample/`. Next in `PLAN.md` Phase 2: the remaining tables (volunteer profile and skills, teams, requests, selections, assignments, weights, audit with INSERT/SELECT-only grants), then request intake (F1) and scoring.
 
 1. **Write Progress Report 1 (due Oct 7)** - the most urgent item. The UI prototype and the new scenario reference data can both go in it.
-2. **Mentor answers from `MENTOR-REVIEW.md` by Oct 15**, for Paper Part 2 (Oct 20). No answer means adopt the recommendations as `[Provisional]` (see Known Problems).
+2. ~~Mentor answers from `MENTOR-REVIEW.md` by Oct 15.~~ Adopted as `[Provisional]` on 2026-10-27 (D-054). Still worth asking the mentor, plus the two bonus questions in that file.
 3. PRD approval.
 4. **Phase 2 starts Oct 8.** Write its detailed task plan with `superpowers:writing-plans` when it starts.
 5. Scenario data (owner B, in parallel): define the loader format, then build synthetic flood and landslide scenarios on the reference files in `data/` (events, timelines, responder bases, OSM settlements for placing citizens and volunteers), meeting the PLAN.md Phase 4 checklist (backdated times, varied location ages and histories, 50+ volunteers, graded ground truth).

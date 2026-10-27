@@ -1,12 +1,13 @@
 import { useRef, useState } from 'react';
+import { useMutation } from '@tanstack/react-query';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { ApiError, apiFetch } from '@/lib/api';
 import { cn } from '@/lib/utils';
-import { SampleDataNote } from '@/components/SampleDataNote';
 import type { Dict } from '@/i18n/dictionaries';
 import { useLang } from '@/i18n/use-lang';
 import { CitizenShell } from '@/shells/CitizenShell';
@@ -16,7 +17,7 @@ type Errors = Partial<Record<'location' | 'hazard' | 'phone', keyof Dict>>;
 
 const flagKeys = ['children', 'elderly', 'injuredFlag', 'disability'] as const;
 
-/** The citizen rescue request form (PRD F1). Sample only: submit does not call the API yet. */
+/** The citizen rescue request form (PRD F1). Submit posts to /api/requests. */
 export function RequestPage() {
   const [, , t] = useLang();
 
@@ -31,6 +32,26 @@ export function RequestPage() {
   const [errors, setErrors] = useState<Errors>({});
   const [submitted, setSubmitted] = useState(false);
   const [refId, setRefId] = useState<string | null>(null);
+  const [sendError, setSendError] = useState<keyof Dict | null>(null);
+
+  const send = useMutation({
+    mutationFn: (body: Record<string, unknown>) =>
+      apiFetch<{ ref: string }>('/api/requests', { method: 'POST', body: JSON.stringify(body) }),
+    onSuccess: ({ ref }) => setRefId(ref),
+    onError: (e) => {
+      const fields = e instanceof ApiError ? e.fields : undefined;
+      if (fields?.lat ?? fields?.lon) setErrors((cur) => ({ ...cur, location: 'locationMissing' }));
+      if (fields?.hazard) setErrors((cur) => ({ ...cur, hazard: 'hazardMissing' }));
+      if (fields?.phone) setErrors((cur) => ({ ...cur, phone: 'phoneBad' }));
+      setSendError(
+        e instanceof ApiError && e.status === 429
+          ? 'rateLimited'
+          : (fields?.affected ?? fields?.trapped ?? fields?.injured)
+            ? 'countsBad'
+            : 'sendFailed',
+      );
+    },
+  });
 
   const locRef = useRef<HTMLButtonElement>(null);
   const hazardRef = useRef<HTMLInputElement>(null);
@@ -75,7 +96,23 @@ export function RequestPage() {
     if (e.location) locRef.current?.focus();
     else if (e.hazard) hazardRef.current?.focus();
     else if (e.phone) phoneRef.current?.focus();
-    else setRefId(`RQ-${String(4831 + Math.floor(Math.random() * 100))}`);
+    else if (coords) {
+      setSendError(null);
+      // Blank counts are left out; the server scores a blank as 0 (PRD F5).
+      const count = (v: string) => (v.trim() === '' ? undefined : Number(v));
+      send.mutate({
+        lat: coords.lat,
+        lon: coords.lon,
+        hazard,
+        phone,
+        contactName: name.trim() || undefined,
+        affected: count(counts.affected),
+        trapped: count(counts.trapped),
+        injured: count(counts.injured),
+        flags: flags.map((f) => (f === 'injuredFlag' ? 'injured' : f)),
+        description: details.trim() || undefined,
+      });
+    }
   }
 
   if (refId) {
@@ -122,7 +159,6 @@ export function RequestPage() {
     <CitizenShell title={t.appTitle}>
       <h1 className="text-2xl font-semibold">{t.appTitle}</h1>
       <p className="text-muted-foreground">{t.appIntro}</p>
-      <SampleDataNote text={t.sampleNote} />
 
       <form noValidate onSubmit={submit} className="space-y-6">
         <fieldset className="space-y-2">
@@ -259,7 +295,7 @@ export function RequestPage() {
                   id={k}
                   checked={flags.includes(k)}
                   onCheckedChange={(v) =>
-                    setFlags(v === true ? [...flags, k] : flags.filter((f) => f !== k))
+                    setFlags((cur) => (v === true ? [...cur, k] : cur.filter((f) => f !== k)))
                   }
                 />
                 <Label htmlFor={k} className="text-base font-normal">
@@ -282,8 +318,15 @@ export function RequestPage() {
           />
         </div>
 
-        <Button type="submit" size="lg" className="h-12 w-full text-base">
-          {t.submit}
+        <div aria-live="polite">
+          {sendError && (
+            <Alert variant="destructive">
+              <AlertDescription>{t[sendError]}</AlertDescription>
+            </Alert>
+          )}
+        </div>
+        <Button type="submit" size="lg" disabled={send.isPending} className="h-12 w-full text-base">
+          {send.isPending ? t.sending : t.submit}
         </Button>
       </form>
     </CitizenShell>

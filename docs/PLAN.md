@@ -58,7 +58,7 @@ A phase ends only when its exit criteria hold and the Required Checks in `TESTIN
 **Decisions to close first.** Paper Part 2 (Oct 20) has to describe the final formulas, so these are urgent:
 1. Approve `PRD.md` (now Draft v2).
 2. ~~**Severity rule table** (PRD open item 1).~~ **Done 2026-09-18 (D-047):** a provisional points table is in PRD F5. Still needs domain confirmation, and Phase 6 must re-check it.
-3. The remaining formula details: severity scaling, the team score, and the 2-hour Freshness window (PRD open items 2, 3 and 6).
+3. ~~The remaining formula details: severity scaling, the team score, and the 2-hour Freshness window (PRD open items 2, 3 and 6).~~ **Done 2026-10-27 (D-054):** no mentor answer by Oct 15, so the team's recommendations were adopted as `[Provisional]`.
 4. Whether any shared commander action belongs to only one commander type, and whether the office commander can edit a selection (PRD open items 4 and 5).
 5. ~~The evaluation method for the paper.~~ **Done 2026-09-22 (D-049):** the protocol is in `PRD.md` under Success Metrics. Roles and constraints are fixed; **Phase 4 must assign the actual names.**
 
@@ -99,7 +99,7 @@ Already decided: on 2026-09-15 (D-026 to D-034) band cutoffs and the Wait cap (b
 
 > **Progress 2026-10-26:** done - USER and SESSION tables with migrations (applied at start-up, D-053), login / logout / current-session routes, `requireRole`, the D-035 error shape on those routes, the integration harness (without the truncate role yet), and the seed script (four demo accounts, no volunteers or teams yet). Also done from (C): the login screen and **every** role screen, not just empty shells, on sample data. Still open from (A): the other tables, constraints, audit grants, ownership checks and the Admin commander routes.
 
-- Drizzle schema and migrations for USER, VOLUNTEER_PROFILE, VOLUNTEER_SKILL, TEAM, TEAM_CAPABILITY, RESCUE_REQUEST, SELECTION, ASSIGNMENT, SCORING_WEIGHTS, LOCATION_REQUEST, AUDIT_ENTRY and SESSION.
+- Drizzle schema and migrations for USER, VOLUNTEER_PROFILE, VOLUNTEER_SKILL, TEAM, TEAM_CAPABILITY, RESCUE_REQUEST, SELECTION, ASSIGNMENT, SCORING_WEIGHTS, AUDIT_ENTRY and SESSION (the location request is fields on the settings row, D-042).
 - Database constraints: status values, and at most one active assignment per responder.
 - The app's database role gets only `INSERT`/`SELECT` on the audit table.
 - Server-side sessions, httpOnly cookie, bcrypt; login, logout and current-session routes.

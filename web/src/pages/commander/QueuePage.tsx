@@ -40,6 +40,7 @@ import {
   type SampleDecision,
 } from '@/sample/data';
 import { CommanderShell } from '@/shells/CommanderShell';
+import { LiveQueue } from './LiveQueue';
 
 type Role = 'onsite' | 'office';
 
@@ -54,12 +55,18 @@ const queue = requests
 const waited = (m: number) =>
   m < 60 ? `${String(m)} min` : `${String(Math.floor(m / 60))} h ${String(m % 60)} min`;
 
+/** The on-site commander's queue is live (LiveQueue); the office commander's is still sample. */
+export function QueuePage() {
+  const { user } = useSession();
+  return user?.role === 'office_commander' ? <SampleQueue /> : <LiveQueue />;
+}
+
 /**
- * The prioritized queue with a split-view detail (DESIGN.md -> Layout). Office commanders
+ * The sample queue with a split-view detail (DESIGN.md -> Layout). Office commanders
  * see only selections sent for approval. The selected request and the filter live in the
  * URL (?r=, ?filter=awaiting). Sample only: decisions stay in this page's memory.
  */
-export function QueuePage() {
+function SampleQueue() {
   const { user } = useSession();
   const { path, search } = usePath();
   const role: Role = user?.role === 'office_commander' ? 'office' : 'onsite';
