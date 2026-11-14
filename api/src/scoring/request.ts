@@ -9,7 +9,7 @@ export interface Weights {
 }
 
 // PRD F7: initial weights are equal until domain-informed values exist.
-// ponytail: constant until the Admin settings row exists (AC10); then the caller passes its row.
+// The live weights come from the settings row (AC10); this default is for tests and callers without one.
 export const DEFAULT_WEIGHTS: Weights = { alpha: 1 / 3, beta: 1 / 3, gamma: 1 / 3 };
 
 export interface Factor {

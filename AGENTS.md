@@ -90,7 +90,7 @@ api/                   Express API (strict TypeScript)
   src/app.ts           Express app: /api/health, loadSession, /api/auth, 404 and error handler (D-035)
   src/auth/            phone rule, session service (bcrypt, SHA-256 token hashes), requireRole
   src/routes/          HTTP handlers: auth.ts (login, logout, me), requests.ts (public POST /api/requests, commander GET /api/queue), http.ts (validation error helper)
-  src/services/        business rules; requests.ts (create a request, build the queue)
+  src/services/        business rules; requests.ts (create a request, build the queue), settings.ts (the settings row: weights, Freshness window)
   src/scoring/         pure ranking functions; request.ts (F5 severity, F6 P(r), band, sort), responder.ts (F7 volunteer and team shortlists, F8 contributions and reason)
   src/rate-limit.ts    in-memory per-IP limiter used by the public request route (D-036, D-055)
   src/db/              Drizzle client, schema (every MVP table; D-056), migrate.ts, seed.ts

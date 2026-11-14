@@ -2,6 +2,7 @@ import { inArray } from 'drizzle-orm';
 import { db } from '../db/client.js';
 import { rescueRequests } from '../db/schema.js';
 import { band, byPriority, priority, severity, type Hazard } from '../scoring/request.js';
+import { getSettings } from './settings.js';
 
 export const refOf = (seq: number) => `RQ-${String(seq)}`;
 
@@ -54,6 +55,7 @@ export async function createRequest(input: NewRequest): Promise<string> {
  * number, so only commander routes may call this (AC14).
  */
 export async function listQueue(now: Date) {
+  const { alpha, beta, gamma } = await getSettings();
   const rows = await db
     .select()
     .from(rescueRequests)
@@ -70,6 +72,7 @@ export async function listQueue(now: Date) {
       const score = priority(
         { severity: r.severity, flagCount: flags.length, createdAt: r.createdAt },
         now,
+        { alpha, beta, gamma },
       );
       return {
         ref: refOf(r.seq),
