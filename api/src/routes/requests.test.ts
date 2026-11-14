@@ -3,7 +3,7 @@ import request from 'supertest';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { app } from '../app.js';
 import { db } from '../db/client.js';
-import { rescueRequests, users, type UserRole } from '../db/schema.js';
+import { rescueRequests, scoringWeights, users, type UserRole } from '../db/schema.js';
 import { truncateAll } from '../test/reset.js';
 
 const PASSWORD = 'correct-horse';
@@ -143,6 +143,17 @@ describe('GET /api/queue', () => {
     const [row] = queueOf(await request(app).get('/api/queue').set('Cookie', sid));
     const sum = row!.score.factors.reduce((s, f) => s + f.contribution, 0);
     expect(row!.score.total).toBeCloseTo(sum, 10);
+  });
+
+  it('AC10: the queue scores with the weights in the settings row', async () => {
+    const sid = await signIn('onsite_commander', '9000000002');
+    await request(app)
+      .post('/api/requests')
+      .send({ ...valid, trapped: 1, flags: ['children'] });
+    await db.update(scoringWeights).set({ alpha: 1, beta: 0, gamma: 0 });
+    const [row] = queueOf(await request(app).get('/api/queue').set('Cookie', sid));
+    // Severity 3 -> Sev (3 - 1) / 4 = 0.5, and only Sev counts now.
+    expect(row!.score.total).toBe(0.5);
   });
 
   it('F6: resolved and cancelled requests are not in the queue', async () => {

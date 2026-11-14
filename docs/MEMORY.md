@@ -152,9 +152,9 @@ Session 2026-10-27 (Phase-I demo slice, branch `feat/request-slice`, not committ
 ## Next Steps
 
 0a. **Request slice merged (PR #7).** Still to check on the deployed site: submit a request, sign in as the on-site commander (phone 9000000002), see it in the queue, and check `X-Forwarded-For` once to confirm `trust proxy = 1` gives the citizen's IP, not Render's.
-0b. **Code owed by D-054:** reject w1 + w2 = 0 in `web/src/pages/admin/weights.ts` and later in the API; add the Freshness window to the settings row.
+0b. **Code owed by D-054:** done on 2026-11-14 for the web form (w1 + w2 = 0 rejected, Freshness window field) and the scoring functions (`shortlistTeams` throws). Still owed: the same zod checks in the Admin weights API, which doesn't exist yet. The form is still sample data and saves nothing.
 0c. **Owed by the slice:** Hindi review of the four new strings (`sending`, `sendFailed`, `rateLimited`, `countsBad`); map pin on the citizen form (F1); the office commander's queue is still sample data.
-0d. **Connect screens one feature at a time**, deleting their use of `web/src/sample/`. The tables are done (D-056). The scoring core is done (`api/src/scoring/responder.ts`, 2026-11-14, branch `feat/responder-scoring`). Still open from Phase 2: the Admin commander routes, and switching the queue's weights from `DEFAULT_WEIGHTS` to the settings row. Then Phase 3, which is behind: F2-F4, F7 and the F9 decision service.
+0d. **Connect screens one feature at a time**, deleting their use of `web/src/sample/`. The tables are done (D-056). The scoring core is done (`api/src/scoring/responder.ts`, merged as PR #9), and the queue reads α, β, γ from the settings row (2026-11-14, AC10 test). Still open from Phase 2: the Admin commander routes, an Admin weights API to connect the form, and seed volunteers and teams. Then Phase 3, which is behind: F2-F4, F7 and the F9 decision service.
 
 1. **Write Progress Report 1 (due Oct 7)** - the most urgent item. The UI prototype and the new scenario reference data can both go in it.
 2. ~~Mentor answers from `MENTOR-REVIEW.md` by Oct 15.~~ Adopted as `[Provisional]` on 2026-10-27 (D-054). Still worth asking the mentor, plus the two bonus questions in that file.

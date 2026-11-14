@@ -8,3 +8,9 @@ export function sumsToOne(values: number[]): boolean {
   if (values.some((v) => !Number.isFinite(v) || v < 0 || v > 1)) return false;
   return Math.abs(groupSum(values) - 1) <= 0.001;
 }
+
+/** D-054: the team score divides by w1 + w2, so they cannot both be 0. */
+export const teamWeightsOk = (w1: number, w2: number) => w1 + w2 > 0;
+
+/** D-054: the Freshness window is a whole number of minutes, at least 1. */
+export const freshnessOk = (minutes: number) => Number.isInteger(minutes) && minutes >= 1;

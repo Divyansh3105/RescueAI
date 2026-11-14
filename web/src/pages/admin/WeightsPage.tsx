@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { WEIGHTS } from '@/sample/data';
 import { CommanderShell } from '@/shells/CommanderShell';
-import { groupSum, sumsToOne } from './weights';
+import { freshnessOk, groupSum, sumsToOne, teamWeightsOk } from './weights';
 
 type Key = keyof typeof WEIGHTS;
 
@@ -44,10 +44,13 @@ export function WeightsPage() {
         string
       >,
   );
+  const [freshness, setFreshness] = useState('120');
   const [saved, setSaved] = useState(false);
 
   const nums = (g: (typeof groups)[number]) => g.fields.map(([k]) => Number(values[k]));
-  const valid = groups.every((g) => sumsToOne(nums(g)));
+  const teamOk = teamWeightsOk(Number(values.w1), Number(values.w2));
+  const freshOk = freshnessOk(Number(freshness));
+  const valid = groups.every((g) => sumsToOne(nums(g))) && teamOk && freshOk;
 
   return (
     <CommanderShell
@@ -109,9 +112,44 @@ export function WeightsPage() {
                   ? ' ✓'
                   : ' — each weight must be between 0 and 1, and the group must add up to 1.'}
               </p>
+              {g.fields[0]![0] === 'w1' && !teamOk && (
+                <p aria-live="polite" className="text-destructive">
+                  w1 and w2 cannot both be 0: the team score divides by w1 + w2.
+                </p>
+              )}
             </fieldset>
           );
         })}
+        <fieldset className="space-y-3 rounded-lg border p-4">
+          <legend className="px-1 text-base font-semibold">Freshness window</legend>
+          <p className="text-muted-foreground">
+            A volunteer location this many minutes old scores 0 for Freshness. Default 120 (2
+            hours).
+          </p>
+          <div className="max-w-48 space-y-1">
+            <Label htmlFor="freshness">Minutes</Label>
+            <Input
+              id="freshness"
+              type="number"
+              inputMode="numeric"
+              step="1"
+              min={1}
+              value={freshness}
+              aria-invalid={!freshOk}
+              aria-describedby={freshOk ? undefined : 'freshness-error'}
+              onChange={(e) => {
+                setSaved(false);
+                setFreshness(e.target.value);
+              }}
+              className="tabular-nums"
+            />
+          </div>
+          {!freshOk && (
+            <p id="freshness-error" aria-live="polite" className="text-destructive">
+              Enter a whole number of minutes, 1 or more.
+            </p>
+          )}
+        </fieldset>
         <Button type="submit" disabled={!valid}>
           Save weights
         </Button>

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { groupSum, sumsToOne } from './weights';
+import { freshnessOk, groupSum, sumsToOne, teamWeightsOk } from './weights';
 
 describe('weights', () => {
   it('sumsToOne accepts 0.4+0.3+0.2+0.1 and rejects 0.5+0.5+0.1', () => {
@@ -19,5 +19,17 @@ describe('weights', () => {
 
   it('groupSum adds the group', () => {
     expect(groupSum([0.25, 0.25, 0.5])).toBeCloseTo(1);
+  });
+
+  it('D-054: rejects w1 + w2 = 0, which divides the team score by zero', () => {
+    expect(teamWeightsOk(0, 0)).toBe(false);
+    expect(teamWeightsOk(0, 0.1)).toBe(true);
+  });
+
+  it('D-054: the Freshness window is a whole number of minutes, at least 1', () => {
+    expect(freshnessOk(120)).toBe(true);
+    expect(freshnessOk(0)).toBe(false);
+    expect(freshnessOk(90.5)).toBe(false);
+    expect(freshnessOk(Number.NaN)).toBe(false);
   });
 });
