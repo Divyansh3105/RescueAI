@@ -2,7 +2,7 @@
 
 Canonical instructions for AI coding agents working on RescueAI. Read this first on every task.
 
-> **Project state (2026-10-27): login and the first request slice work; every other screen is sample data.** `web/` and `api/` build, lint, type-check and test. `docker compose up` serves the SPA and the API from one origin; it deploys to Render (free) with Neon PostgreSQL (D-044). GitHub Actions runs the checks on every pull request. **Built:** phone + password login with server sessions (`users` and `sessions` tables, `/api/auth/*`, role guard; D-052), and every MVP screen for all five roles. **Live (2026-10-27):** the citizen request form (F1, partial: no map pin, Hindi strings for the new messages unreviewed) posts to `POST /api/requests`, and the on-site commander's queue (F6, partial) reads `GET /api/queue`, scored by `api/src/scoring/request.ts` (F5 automatic severity, P(r)). **Every other screen shows sample data from `web/src/sample/` and calls no API** (including the office commander's queue) - don't describe them as working features. No other PRD feature (F2-F14) is implemented on the server. Any section below that says **Not established** must be filled in, in the same change that establishes it.
+> **Project state (2026-10-27): login and the first request slice work; every other screen is sample data.** `web/` and `api/` build, lint, type-check and test. `docker compose up` serves the SPA and the API from one origin; it deploys to Render (free) with Neon PostgreSQL (D-044). GitHub Actions runs the checks on every pull request. **Built:** phone + password login with server sessions (`users` and `sessions` tables, `/api/auth/*`, role guard; D-052), and every MVP screen for all five roles. **Live (2026-10-27):** the citizen request form (F1, partial: no map pin, Hindi strings for the new messages unreviewed) posts to `POST /api/requests`, and the on-site commander's queue (F6, partial) reads `GET /api/queue`, scored by `api/src/scoring/request.ts` (F5 automatic severity, P(r)). **Every other screen shows sample data from `web/src/sample/` and calls no API** (including the office commander's queue) - don't describe them as working features. No other PRD feature (F2-F14) is implemented on the server. **Since 2026-11-14 every MVP table exists** (volunteer profiles and skills, teams, selections, assignments, the settings row, the append-only audit log; D-056), but no route reads or writes the new ones yet. Any section below that says **Not established** must be filled in, in the same change that establishes it.
 
 ## Project Overview
 
@@ -93,7 +93,7 @@ api/                   Express API (strict TypeScript)
   src/services/        business rules; requests.ts (create a request, build the queue)
   src/scoring/         pure ranking functions; request.ts (F5 severity, F6 P(r), band, sort)
   src/rate-limit.ts    in-memory per-IP limiter used by the public request route (D-036, D-055)
-  src/db/              Drizzle client, schema (users, sessions, rescue_requests), migrate.ts, seed.ts
+  src/db/              Drizzle client, schema (every MVP table; D-056), migrate.ts, seed.ts
   src/test/            integration-test global setup (migrate) and truncateAll()
   drizzle/             generated migrations, applied at API start-up (D-053)
   drizzle.config.ts    drizzle-kit config

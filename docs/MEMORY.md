@@ -1,12 +1,12 @@
 # Project Memory
 
-_Last updated: 2026-10-27 (Phase-I demo slice: request intake and queue; mentor formulas adopted as Provisional). Update this after every meaningful session and delete anything that's out of date._
+_Last updated: 2026-11-14 (the full data model and the append-only audit log, D-056; branch `feat/data-model`). Update this after every meaningful session and delete anything that's out of date._
 
 ## Current Status
 
 - **Login works; every screen exists on sample data (merged to `main` 2026-10-26 as PR #5).** Deployed and checked live: `/api/health` ok with the database up, `/api/auth/login` answers from the new `users` table (migrations ran on Neon), SPA deep links load. See the 2026-10-26 entry below.
 - **Before that: scaffolded, no features.** It is a git repository now, pushed to <https://github.com/Divyansh3105/RescueAI> on `main`, with CI green. `web/` and `api/` exist, build, lint, type-check and each pass one trivial test. **Deployed and live at <https://rescueai-70mu.onrender.com>** (Render free, Singapore, auto-deploy from `main`), reading from Neon. `docker compose up` builds the same image locally and serves it from `http://localhost:3000` - verified on 2026-09-18: health returned `{"status":"ok","db":"up"}`, the SPA rendered it in a browser, a deep route fell back to `index.html`, and an unknown `/api/*` route returned the D-035 error shape.
-- **Server features so far: login and the first request slice (branch `feat/request-slice`, 2026-10-27, not committed or merged yet).** Tables: `users`, `sessions`, `rescue_requests`. Routes: `/api/health`, `/api/auth/login|logout|me`, public `POST /api/requests`, commander `GET /api/queue`. Scoring: `api/src/scoring/request.ts` (F5 severity, P(r), band, sort). No selections, assignments, weights or audit table yet.
+- **Server features so far: login and the first request slice (merged as PR #7 on 2026-10-27).** Every MVP table exists since 2026-11-14 (D-056, branch `feat/data-model`, not merged yet), but only `users`, `sessions` and `rescue_requests` are used by a route. Routes: `/api/health`, `/api/auth/login|logout|me`, public `POST /api/requests`, commander `GET /api/queue`. Scoring: `api/src/scoring/request.ts` (F5 severity, P(r), band, sort). The new tables (volunteers, skills, teams, selections, assignments, the settings row, audit) have database constraints and tests but no routes or services yet.
 - The documentation set: `PRD.md`, `AGENTS.md` (the entry point), `DESIGN.md`, `ARCHITECTURE.md`, `RULES.md`, `DECISIONS.md`, `TESTING.md`, `PLAN.md`, `MEMORY.md`, and `CLAUDE.md` (which just imports AGENTS.md).
 - The stack, tooling and coding rules are decided. The PRD is **Draft v2** approved by the owner on 2026-10-27.
 
@@ -151,10 +151,10 @@ Session 2026-10-27 (Phase-I demo slice, branch `feat/request-slice`, not committ
 
 ## Next Steps
 
-0a. **Owner: look at the diff on `feat/request-slice`, then say commit.** Then open a PR (CI needs a Postgres service, already configured). After merge, check the deployed site: submit a request, sign in as the on-site commander (phone 9000000002), see it in the queue, and check `X-Forwarded-For` once to confirm `trust proxy = 1` gives the citizen's IP, not Render's.
+0a. **Request slice merged (PR #7).** Still to check on the deployed site: submit a request, sign in as the on-site commander (phone 9000000002), see it in the queue, and check `X-Forwarded-For` once to confirm `trust proxy = 1` gives the citizen's IP, not Render's.
 0b. **Code owed by D-054:** reject w1 + w2 = 0 in `web/src/pages/admin/weights.ts` and later in the API; add the Freshness window to the settings row.
 0c. **Owed by the slice:** Hindi review of the four new strings (`sending`, `sendFailed`, `rateLimited`, `countsBad`); map pin on the citizen form (F1); the office commander's queue is still sample data.
-0d. **Connect screens one feature at a time**, deleting their use of `web/src/sample/`. Next in `PLAN.md` Phase 2: the remaining tables (volunteer profile and skills, teams, requests, selections, assignments, weights, audit with INSERT/SELECT-only grants), then request intake (F1) and scoring.
+0d. **Connect screens one feature at a time**, deleting their use of `web/src/sample/`. The tables are done (D-056). Still open from Phase 2: the rest of the scoring core (S(v,r), team score, eligibility, contributions, reason), the Admin commander routes, and switching the queue's weights from `DEFAULT_WEIGHTS` to the settings row. Then Phase 3, which is behind: F2-F4, F7 and the F9 decision service.
 
 1. **Write Progress Report 1 (due Oct 7)** - the most urgent item. The UI prototype and the new scenario reference data can both go in it.
 2. ~~Mentor answers from `MENTOR-REVIEW.md` by Oct 15.~~ Adopted as `[Provisional]` on 2026-10-27 (D-054). Still worth asking the mentor, plus the two bonus questions in that file.

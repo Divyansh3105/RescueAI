@@ -98,6 +98,8 @@ Already decided: on 2026-09-15 (D-026 to D-034) band cutoffs and the Wait cap (b
 **Build: data, login and access (A):**
 
 > **Progress 2026-10-26:** done - USER and SESSION tables with migrations (applied at start-up, D-053), login / logout / current-session routes, `requireRole`, the D-035 error shape on those routes, the integration harness (without the truncate role yet), and the seed script (four demo accounts, no volunteers or teams yet). Also done from (C): the login screen and **every** role screen, not just empty shells, on sample data. Still open from (A): the other tables, constraints, audit grants, ownership checks and the Admin commander routes.
+>
+> **Progress 2026-11-14:** done - every other table, the status and one-active-assignment constraints, and the append-only audit log (triggers plus REVOKE; D-056), with AC17 tested. Still open from (A): ownership checks and the Admin commander routes.
 
 - Drizzle schema and migrations for USER, VOLUNTEER_PROFILE, VOLUNTEER_SKILL, TEAM, TEAM_CAPABILITY, RESCUE_REQUEST, SELECTION, ASSIGNMENT, SCORING_WEIGHTS, AUDIT_ENTRY and SESSION (the location request is fields on the settings row, D-042).
 - Database constraints: status values, and at most one active assignment per responder.
