@@ -2,7 +2,7 @@
 
 Canonical instructions for AI coding agents working on RescueAI. Read this first on every task.
 
-> **Project state (2026-10-27): login and the first request slice work; every other screen is sample data.** `web/` and `api/` build, lint, type-check and test. `docker compose up` serves the SPA and the API from one origin; it deploys to Render (free) with Neon PostgreSQL (D-044). GitHub Actions runs the checks on every pull request. **Built:** phone + password login with server sessions (`users` and `sessions` tables, `/api/auth/*`, role guard; D-052), and every MVP screen for all five roles. **Live (2026-10-27):** the citizen request form (F1, partial: no map pin, Hindi strings for the new messages unreviewed) posts to `POST /api/requests`, and the on-site commander's queue (F6, partial) reads `GET /api/queue`, scored by `api/src/scoring/request.ts` (F5 automatic severity, P(r)). **Every other screen shows sample data from `web/src/sample/` and calls no API** (including the office commander's queue) - don't describe them as working features. No other PRD feature (F2-F14) is implemented on the server. **Since 2026-11-14 every MVP table exists** (volunteer profiles and skills, teams, selections, assignments, the settings row, the append-only audit log; D-056), but no route reads or writes the new ones yet. Any section below that says **Not established** must be filled in, in the same change that establishes it.
+> **Project state (2026-10-27): login and the first request slice work; every other screen is sample data.** `web/` and `api/` build, lint, type-check and test. `docker compose up` serves the SPA and the API from one origin; it deploys to Render (free) with Neon PostgreSQL (D-044). GitHub Actions runs the checks on every pull request. **Built:** phone + password login with server sessions (`users` and `sessions` tables, `/api/auth/*`, role guard; D-052), and every MVP screen for all five roles. **Live (2026-10-27):** the citizen request form (F1, partial: no map pin, Hindi strings for the new messages unreviewed) posts to `POST /api/requests`, and the on-site commander's queue (F6, partial) reads `GET /api/queue`, scored by `api/src/scoring/request.ts` (F5 automatic severity, P(r)). **Since 2026-11-14 the Admin's Commanders page is live too** (`/api/admin/commanders`: list, create with a one-time temporary password, deactivate and reactivate). **Every other screen shows sample data from `web/src/sample/` and calls no API** (including the office commander's queue) - don't describe them as working features. No other PRD feature (F2-F14) is implemented on the server. **Since 2026-11-14 every MVP table exists** (volunteer profiles and skills, teams, selections, assignments, the settings row, the append-only audit log; D-056), but no route reads or writes the new ones yet. Any section below that says **Not established** must be filled in, in the same change that establishes it.
 
 ## Project Overview
 
@@ -80,17 +80,17 @@ web/                   React SPA (Vite, Tailwind v4, shadcn/ui, TanStack Query)
   src/router.ts        tiny History-API router (usePath, navigate); <Link> is components/Link.tsx
   src/auth/            useSession / useLogin / useLogout and the <RequireRole> guard
   src/shells/          CitizenShell, VolunteerShell, CommanderShell (also used by the Admin)
-  src/pages/           one component per screen (login, citizen, volunteer, commander, admin). citizen/RequestPage and commander/LiveQueue are live; the rest are sample
+  src/pages/           one component per screen (login, citizen, volunteer, commander, admin). citizen/RequestPage, commander/LiveQueue and admin/CommandersPage are live; the rest are sample
   src/i18n/            en/hi dictionaries (identical keys, tested) and useLang
   src/components/      domain composites (domain.tsx), LangSwitch, Link; ui/ is shadcn CLI output
   src/sample/data.ts   synthetic data behind every screen that isn't connected yet
   src/lib/             api.ts (apiFetch, ApiError), phone.ts, utils.ts (cn)
   components.json      shadcn CLI config (slate base, CSS variables, @/* alias)
 api/                   Express API (strict TypeScript)
-  src/app.ts           Express app: /api/health, loadSession, /api/auth, 404 and error handler (D-035)
+  src/app.ts           Express app: /api/health, loadSession, /api/auth, /api/requests, /api/queue, /api/admin/commanders, 404 and error handler (D-035)
   src/auth/            phone rule, session service (bcrypt, SHA-256 token hashes), requireRole
-  src/routes/          HTTP handlers: auth.ts (login, logout, me), requests.ts (public POST /api/requests, commander GET /api/queue), http.ts (validation error helper)
-  src/services/        business rules; requests.ts (create a request, build the queue), settings.ts (the settings row: weights, Freshness window)
+  src/routes/          HTTP handlers: auth.ts (login, logout, me), requests.ts (public POST /api/requests, commander GET /api/queue), admin.ts (Admin-only /api/admin/commanders), http.ts (validation error helper)
+  src/services/        business rules; requests.ts (create a request, build the queue), settings.ts (the settings row: weights, Freshness window), admin.ts (commander accounts, temporary passwords)
   src/scoring/         pure ranking functions; request.ts (F5 severity, F6 P(r), band, sort), responder.ts (F7 volunteer and team shortlists, F8 contributions and reason)
   src/rate-limit.ts    in-memory per-IP limiter used by the public request route (D-036, D-055)
   src/db/              Drizzle client, schema (every MVP table; D-056), migrate.ts, seed.ts

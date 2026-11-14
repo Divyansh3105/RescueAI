@@ -4,6 +4,7 @@ import express, { type ErrorRequestHandler } from 'express';
 import { loadSession } from './auth/middleware.js';
 import { pingDb } from './db/client.js';
 import { env } from './env.js';
+import { adminCommandersRouter } from './routes/admin.js';
 import { authRouter } from './routes/auth.js';
 import { queueRouter, requestsRouter } from './routes/requests.js';
 
@@ -16,6 +17,7 @@ if (env.isProduction) app.set('trust proxy', 1);
 app.use(express.json());
 app.use('/api', loadSession);
 app.use('/api/auth', authRouter);
+app.use('/api/admin/commanders', adminCommandersRouter);
 app.use('/api/requests', requestsRouter);
 app.use('/api/queue', queueRouter);
 
