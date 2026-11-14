@@ -129,7 +129,7 @@ npm only. `web/` and `api/` are separate packages with their own `package-lock.j
 | repo root | `docker compose down` | Stop it. Add `-v` to also drop the database volume. |
 | `api/` | `node --env-file=../.env.local --import tsx src/index.ts` | Run the API against the **real Neon** `production` branch instead of the local container |
 | repo root | `neon config plan` | Preview what `neon deploy` would change on the linked branch |
-| `api/` | `SEED_PASSWORD=... npm run db:seed` | Create or update the four demo accounts (phones 9000000001-4: volunteer, on-site, office, admin). Runs migrations first. |
+| `api/` | `SEED_PASSWORD=... npm run db:seed` | Create or reset the synthetic demo data: accounts on phones 9000000001-4 (volunteer, on-site, office, admin) and 9000000005-9 (more volunteers), every volunteer's profile and skills, and three teams around Dehradun. Re-running resets them, passwords included. Runs migrations first. |
 
 Deployed at <https://rescueai-70mu.onrender.com>, auto-deploying from `main`. The Neon project is `super-hill-50061651`, branch `production`, linked on 2026-09-18 (D-045). Never print or paste a connection string into a file, a log or a commit; pass `.env.local` with `--env-file` instead.
 
