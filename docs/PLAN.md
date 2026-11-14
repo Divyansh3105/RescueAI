@@ -114,6 +114,8 @@ Already decided: on 2026-09-15 (D-026 to D-034) band cutoffs and the Wait cap (b
 **Build: scoring core (B, in parallel):**
 - Severity rule, P(r), S(v,r), team score, eligibility filters, per-factor contributions, the one-line reason, and the priority band function. All are pure functions in `api/src/scoring/`.
 
+> **Progress 2026-11-14:** all done - `request.ts` (severity, P(r), band) and `responder.ts` (S(v,r), team score, eligibility, contributions, reason), with AC3, AC5, AC8 and AC9 unit tests.
+
 **Build: exam demo slice (C) — bare minimum, no polish:**
 - Login screen and empty role shells per `DESIGN.md`.
 - A citizen request form → automatic severity → commander queue sorted by P(r), deployed on the VM.
