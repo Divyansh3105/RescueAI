@@ -1330,3 +1330,27 @@ The Phase-I demo slice (PLAN Phase 2) needed the first rescue request table, the
 The limiter is per process and fixed-window: fine for one Render instance. `trust proxy` = 1 assumes one proxy hop and has not been checked on the deployed site. The on-site queue is live but its recommendation and selection controls are not connected; the office commander's screen is still sample data.
 ### Consequences
 `AGENTS.md`, `TESTING.md` and `MEMORY.md` updated. Supersedes nothing.
+
+## D-056 The full data model, and how the audit log is kept append-only
+
+### Date
+2026-11-14
+### Status
+Accepted.
+### Context
+PLAN Phase 2 (A) still owed every table after `users`, `sessions` and `rescue_requests`, the "one active assignment" constraint and the audit grants (AC17). Two facts made the planned grant-only approach too weak: the app connects as the role that runs the migrations, so it **owns** the audit table; and the local and CI test databases connect as a superuser, which ignores grants, so an AC17 test against grants alone would fail there.
+### Options Considered
+1. Grants only, with a separate non-owner app role and a separate truncate role (D-038 as written).
+2. Triggers that reject UPDATE, DELETE and TRUNCATE on `audit_entries`, plus a REVOKE of those rights from the owning app role.
+### Decision
+Option 2, in migration `0002_data_model.sql`:
+- New tables: `volunteer_profiles` (availability, last location and its time, five service counters), `volunteer_skills`, `teams`, `team_capabilities`, `selections`, `selection_responders`, `assignments`, `scoring_weights` (the single settings row, inserted by the migration) and `audit_entries`. `rescue_requests` gains `severity_override` and `first_recommended_at`.
+- **A selection's responders are rows in `selection_responders`**, not arrays, so each one has a foreign key.
+- **Database-level guards for the hard invariants:** an assignment carries `(selection_id, 'approved')` as a foreign key to `selections (id, status)`, so it cannot exist for a selection that is not approved, and an approved selection with assignments cannot change status (AC11). A CHECK makes the approver differ from the selector (AC22). Partial unique indexes allow one active assignment per volunteer (offered or accepted) and per team (deployed).
+- **Audit append-only:** triggers raise on UPDATE, DELETE and TRUNCATE for every role, and the rights are revoked from the app role.
+- **Test cleanup** turns triggers off for its own transaction with `session_replication_role = replica`, which needs a superuser (the test container's user), instead of a separate truncate role.
+- Only the first-recommendation time is a new column for F14; the selection, approval, acceptance and completion times are read from `selections` and `assignments`.
+### Trade-offs
+A superuser can still bypass the triggers with `session_replication_role`; no app code does, and the deployed Neon role is not a true superuser (whether Neon lets it change that setting has not been checked). The audit action list is an enum, so a new action type needs a migration.
+### Consequences
+`ARCHITECTURE.md`, `TESTING.md`, `AGENTS.md`, `PLAN.md` and `MEMORY.md` updated. Refines D-038 (test isolation) without superseding the rest of it.

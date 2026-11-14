@@ -160,7 +160,7 @@ erDiagram
 **Rules:**
 - **All timestamps are stored in UTC** (`timestamptz`) and rendered in IST in the UI and in CSV exports (D-041). The Wait term, the evaluation timestamps and SM1 all depend on this.
 - **Location is stored as plain latitude/longitude columns.** MVP proximity is straight-line (haversine) distance computed in `scoring/`. PostGIS is added only when a Future spatial feature needs it.
-- **The audit log is append-only at the database level (Decided).** The application's DB role gets `INSERT` and `SELECT` only on the audit table. Any action that must be audited writes its audit row **in the same transaction** as the action.
+- **The audit log is append-only at the database level (Decided).** The application's DB role gets `INSERT` and `SELECT` only on the audit table, and triggers reject `UPDATE`, `DELETE` and `TRUNCATE` on it for every role, because the app role owns the table and a local or CI superuser ignores grants (D-056). Any action that must be audited writes its audit row **in the same transaction** as the action.
 - **Constraints belong in the database.** Enum-like statuses and "one active assignment per responder" (PRD F10, confirmed 2026-09-15) are enforced with database constraints, not only in application code.
 
 ## API Architecture

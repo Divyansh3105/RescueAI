@@ -1,0 +1,1420 @@
+{
+  "id": "5bcae41c-6834-4d25-897c-770c866cbd64",
+  "prevId": "f6083675-e8d4-4911-bc24-8161163035cb",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.assignments": {
+      "name": "assignments",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "request_id": {
+          "name": "request_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "selection_id": {
+          "name": "selection_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "selection_status": {
+          "name": "selection_status",
+          "type": "selection_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'approved'"
+        },
+        "volunteer_id": {
+          "name": "volunteer_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "team_id": {
+          "name": "team_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "assignment_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "responded_at": {
+          "name": "responded_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "completed_at": {
+          "name": "completed_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "assignments_one_active_volunteer": {
+          "name": "assignments_one_active_volunteer",
+          "columns": [
+            {
+              "expression": "volunteer_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "where": "\"assignments\".\"status\" in ('offered', 'accepted')",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "assignments_one_active_team": {
+          "name": "assignments_one_active_team",
+          "columns": [
+            {
+              "expression": "team_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "where": "\"assignments\".\"status\" = 'deployed'",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "assignments_request_idx": {
+          "name": "assignments_request_idx",
+          "columns": [
+            {
+              "expression": "request_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "assignments_request_id_rescue_requests_id_fk": {
+          "name": "assignments_request_id_rescue_requests_id_fk",
+          "tableFrom": "assignments",
+          "tableTo": "rescue_requests",
+          "columnsFrom": [
+            "request_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "assignments_volunteer_id_volunteer_profiles_user_id_fk": {
+          "name": "assignments_volunteer_id_volunteer_profiles_user_id_fk",
+          "tableFrom": "assignments",
+          "tableTo": "volunteer_profiles",
+          "columnsFrom": [
+            "volunteer_id"
+          ],
+          "columnsTo": [
+            "user_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "assignments_team_id_teams_id_fk": {
+          "name": "assignments_team_id_teams_id_fk",
+          "tableFrom": "assignments",
+          "tableTo": "teams",
+          "columnsFrom": [
+            "team_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "assignments_approved_selection_fk": {
+          "name": "assignments_approved_selection_fk",
+          "tableFrom": "assignments",
+          "tableTo": "selections",
+          "columnsFrom": [
+            "selection_id",
+            "selection_status"
+          ],
+          "columnsTo": [
+            "id",
+            "status"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "assignments_selection_approved": {
+          "name": "assignments_selection_approved",
+          "value": "\"assignments\".\"selection_status\" = 'approved'"
+        },
+        "assignments_one_kind": {
+          "name": "assignments_one_kind",
+          "value": "num_nonnulls(\"assignments\".\"volunteer_id\", \"assignments\".\"team_id\") = 1"
+        },
+        "assignments_status_fits_kind": {
+          "name": "assignments_status_fits_kind",
+          "value": "case when \"assignments\".\"team_id\" is not null then \"assignments\".\"status\" in ('deployed', 'completed') else \"assignments\".\"status\" <> 'deployed' end"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.audit_entries": {
+      "name": "audit_entries",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "bigint",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "audit_entries_id_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "9223372036854775807",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "actor_id": {
+          "name": "actor_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "action": {
+          "name": "action",
+          "type": "audit_action",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "target_type": {
+          "name": "target_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "target_id": {
+          "name": "target_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "snapshot": {
+          "name": "snapshot",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "audit_entries_created_idx": {
+          "name": "audit_entries_created_idx",
+          "columns": [
+            {
+              "expression": "created_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "audit_entries_actor_id_users_id_fk": {
+          "name": "audit_entries_actor_id_users_id_fk",
+          "tableFrom": "audit_entries",
+          "tableTo": "users",
+          "columnsFrom": [
+            "actor_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.rescue_requests": {
+      "name": "rescue_requests",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "seq": {
+          "name": "seq",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "rescue_requests_seq_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1000",
+            "minValue": "1",
+            "maxValue": "2147483647",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "hazard": {
+          "name": "hazard",
+          "type": "hazard_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "lat": {
+          "name": "lat",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "lon": {
+          "name": "lon",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "phone": {
+          "name": "phone",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "contact_name": {
+          "name": "contact_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "affected": {
+          "name": "affected",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "trapped": {
+          "name": "trapped",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "injured": {
+          "name": "injured",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "flag_children": {
+          "name": "flag_children",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "flag_elderly": {
+          "name": "flag_elderly",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "flag_injured": {
+          "name": "flag_injured",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "flag_disability": {
+          "name": "flag_disability",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "severity": {
+          "name": "severity",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "severity_override": {
+          "name": "severity_override",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "request_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'pending'"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "first_recommended_at": {
+          "name": "first_recommended_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "rescue_requests_status_idx": {
+          "name": "rescue_requests_status_idx",
+          "columns": [
+            {
+              "expression": "status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "rescue_requests_seq_unique": {
+          "name": "rescue_requests_seq_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "seq"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "rescue_requests_lat_range": {
+          "name": "rescue_requests_lat_range",
+          "value": "\"rescue_requests\".\"lat\" between -90 and 90"
+        },
+        "rescue_requests_lon_range": {
+          "name": "rescue_requests_lon_range",
+          "value": "\"rescue_requests\".\"lon\" between -180 and 180"
+        },
+        "rescue_requests_severity_range": {
+          "name": "rescue_requests_severity_range",
+          "value": "\"rescue_requests\".\"severity\" between 1 and 5"
+        },
+        "rescue_requests_override_range": {
+          "name": "rescue_requests_override_range",
+          "value": "\"rescue_requests\".\"severity_override\" is null or \"rescue_requests\".\"severity_override\" between 1 and 5"
+        },
+        "rescue_requests_counts_nonneg": {
+          "name": "rescue_requests_counts_nonneg",
+          "value": "coalesce(\"rescue_requests\".\"affected\", 0) >= 0 and coalesce(\"rescue_requests\".\"trapped\", 0) >= 0 and coalesce(\"rescue_requests\".\"injured\", 0) >= 0"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.scoring_weights": {
+      "name": "scoring_weights",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "default": 1
+        },
+        "w1": {
+          "name": "w1",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0.25
+        },
+        "w2": {
+          "name": "w2",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0.25
+        },
+        "w3": {
+          "name": "w3",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0.25
+        },
+        "w4": {
+          "name": "w4",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0.25
+        },
+        "alpha": {
+          "name": "alpha",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0.3333333333333333
+        },
+        "beta": {
+          "name": "beta",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0.3333333333333333
+        },
+        "gamma": {
+          "name": "gamma",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0.3333333333333333
+        },
+        "freshness_minutes": {
+          "name": "freshness_minutes",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 120
+        },
+        "location_requested_at": {
+          "name": "location_requested_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "location_requested_by": {
+          "name": "location_requested_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "scoring_weights_location_requested_by_users_id_fk": {
+          "name": "scoring_weights_location_requested_by_users_id_fk",
+          "tableFrom": "scoring_weights",
+          "tableTo": "users",
+          "columnsFrom": [
+            "location_requested_by"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "scoring_weights_single_row": {
+          "name": "scoring_weights_single_row",
+          "value": "\"scoring_weights\".\"id\" = 1"
+        },
+        "scoring_weights_in_range": {
+          "name": "scoring_weights_in_range",
+          "value": "least(\"scoring_weights\".\"w1\", \"scoring_weights\".\"w2\", \"scoring_weights\".\"w3\", \"scoring_weights\".\"w4\", \"scoring_weights\".\"alpha\", \"scoring_weights\".\"beta\", \"scoring_weights\".\"gamma\") >= 0 and greatest(\"scoring_weights\".\"w1\", \"scoring_weights\".\"w2\", \"scoring_weights\".\"w3\", \"scoring_weights\".\"w4\", \"scoring_weights\".\"alpha\", \"scoring_weights\".\"beta\", \"scoring_weights\".\"gamma\") <= 1"
+        },
+        "scoring_weights_freshness_positive": {
+          "name": "scoring_weights_freshness_positive",
+          "value": "\"scoring_weights\".\"freshness_minutes\" > 0"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.selection_responders": {
+      "name": "selection_responders",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "selection_id": {
+          "name": "selection_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "volunteer_id": {
+          "name": "volunteer_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "team_id": {
+          "name": "team_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "selection_responders_selection_id_selections_id_fk": {
+          "name": "selection_responders_selection_id_selections_id_fk",
+          "tableFrom": "selection_responders",
+          "tableTo": "selections",
+          "columnsFrom": [
+            "selection_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "selection_responders_volunteer_id_volunteer_profiles_user_id_fk": {
+          "name": "selection_responders_volunteer_id_volunteer_profiles_user_id_fk",
+          "tableFrom": "selection_responders",
+          "tableTo": "volunteer_profiles",
+          "columnsFrom": [
+            "volunteer_id"
+          ],
+          "columnsTo": [
+            "user_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "selection_responders_team_id_teams_id_fk": {
+          "name": "selection_responders_team_id_teams_id_fk",
+          "tableFrom": "selection_responders",
+          "tableTo": "teams",
+          "columnsFrom": [
+            "team_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "selection_responders_volunteer_unique": {
+          "name": "selection_responders_volunteer_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "selection_id",
+            "volunteer_id"
+          ]
+        },
+        "selection_responders_team_unique": {
+          "name": "selection_responders_team_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "selection_id",
+            "team_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "selection_responders_one_kind": {
+          "name": "selection_responders_one_kind",
+          "value": "num_nonnulls(\"selection_responders\".\"volunteer_id\", \"selection_responders\".\"team_id\") = 1"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.selections": {
+      "name": "selections",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "request_id": {
+          "name": "request_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "required_skills": {
+          "name": "required_skills",
+          "type": "skill[]",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "selection_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'awaiting_approval'"
+        },
+        "selected_by": {
+          "name": "selected_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "selected_at": {
+          "name": "selected_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "decided_by": {
+          "name": "decided_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "decided_at": {
+          "name": "decided_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "reason": {
+          "name": "reason",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "selections_request_idx": {
+          "name": "selections_request_idx",
+          "columns": [
+            {
+              "expression": "request_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "selections_request_id_rescue_requests_id_fk": {
+          "name": "selections_request_id_rescue_requests_id_fk",
+          "tableFrom": "selections",
+          "tableTo": "rescue_requests",
+          "columnsFrom": [
+            "request_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "selections_selected_by_users_id_fk": {
+          "name": "selections_selected_by_users_id_fk",
+          "tableFrom": "selections",
+          "tableTo": "users",
+          "columnsFrom": [
+            "selected_by"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "selections_decided_by_users_id_fk": {
+          "name": "selections_decided_by_users_id_fk",
+          "tableFrom": "selections",
+          "tableTo": "users",
+          "columnsFrom": [
+            "decided_by"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "selections_id_status_unique": {
+          "name": "selections_id_status_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "id",
+            "status"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "selections_decider_matches_status": {
+          "name": "selections_decider_matches_status",
+          "value": "(\"selections\".\"status\" = 'awaiting_approval') = (\"selections\".\"decided_by\" is null) and (\"selections\".\"decided_by\" is null) = (\"selections\".\"decided_at\" is null)"
+        },
+        "selections_two_people": {
+          "name": "selections_two_people",
+          "value": "\"selections\".\"decided_by\" <> \"selections\".\"selected_by\""
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.sessions": {
+      "name": "sessions",
+      "schema": "",
+      "columns": {
+        "token_hash": {
+          "name": "token_hash",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "sessions_user_id_users_id_fk": {
+          "name": "sessions_user_id_users_id_fk",
+          "tableFrom": "sessions",
+          "tableTo": "users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.team_capabilities": {
+      "name": "team_capabilities",
+      "schema": "",
+      "columns": {
+        "team_id": {
+          "name": "team_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "skill": {
+          "name": "skill",
+          "type": "skill",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "team_capabilities_team_id_teams_id_fk": {
+          "name": "team_capabilities_team_id_teams_id_fk",
+          "tableFrom": "team_capabilities",
+          "tableTo": "teams",
+          "columnsFrom": [
+            "team_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "team_capabilities_team_id_skill_pk": {
+          "name": "team_capabilities_team_id_skill_pk",
+          "columns": [
+            "team_id",
+            "skill"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.teams": {
+      "name": "teams",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "force": {
+          "name": "force",
+          "type": "team_force",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "lat": {
+          "name": "lat",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "lon": {
+          "name": "lon",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "team_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'available'"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "teams_lat_range": {
+          "name": "teams_lat_range",
+          "value": "\"teams\".\"lat\" between -90 and 90"
+        },
+        "teams_lon_range": {
+          "name": "teams_lon_range",
+          "value": "\"teams\".\"lon\" between -180 and 180"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.users": {
+      "name": "users",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "phone": {
+          "name": "phone",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "password_hash": {
+          "name": "password_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "role": {
+          "name": "role",
+          "type": "user_role",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "active": {
+          "name": "active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "users_phone_unique": {
+          "name": "users_phone_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "phone"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.volunteer_profiles": {
+      "name": "volunteer_profiles",
+      "schema": "",
+      "columns": {
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "available": {
+          "name": "available",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "lat": {
+          "name": "lat",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "lon": {
+          "name": "lon",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "location_at": {
+          "name": "location_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "offered_count": {
+          "name": "offered_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "accepted_count": {
+          "name": "accepted_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "declined_count": {
+          "name": "declined_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "withdrawn_count": {
+          "name": "withdrawn_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "completed_count": {
+          "name": "completed_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "volunteer_profiles_user_id_users_id_fk": {
+          "name": "volunteer_profiles_user_id_users_id_fk",
+          "tableFrom": "volunteer_profiles",
+          "tableTo": "users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "volunteer_profiles_location_whole": {
+          "name": "volunteer_profiles_location_whole",
+          "value": "(\"volunteer_profiles\".\"lat\" is null) = (\"volunteer_profiles\".\"lon\" is null) and (\"volunteer_profiles\".\"lat\" is null) = (\"volunteer_profiles\".\"location_at\" is null)"
+        },
+        "volunteer_profiles_lat_range": {
+          "name": "volunteer_profiles_lat_range",
+          "value": "\"volunteer_profiles\".\"lat\" between -90 and 90"
+        },
+        "volunteer_profiles_lon_range": {
+          "name": "volunteer_profiles_lon_range",
+          "value": "\"volunteer_profiles\".\"lon\" between -180 and 180"
+        },
+        "volunteer_profiles_available_has_location": {
+          "name": "volunteer_profiles_available_has_location",
+          "value": "not \"volunteer_profiles\".\"available\" or \"volunteer_profiles\".\"lat\" is not null"
+        },
+        "volunteer_profiles_counts_nonneg": {
+          "name": "volunteer_profiles_counts_nonneg",
+          "value": "least(\"volunteer_profiles\".\"offered_count\", \"volunteer_profiles\".\"accepted_count\", \"volunteer_profiles\".\"declined_count\", \"volunteer_profiles\".\"withdrawn_count\", \"volunteer_profiles\".\"completed_count\") >= 0"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.volunteer_skills": {
+      "name": "volunteer_skills",
+      "schema": "",
+      "columns": {
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "skill": {
+          "name": "skill",
+          "type": "skill",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "skill_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'unverified'"
+        },
+        "verified_by": {
+          "name": "verified_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "verified_at": {
+          "name": "verified_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "volunteer_skills_user_id_volunteer_profiles_user_id_fk": {
+          "name": "volunteer_skills_user_id_volunteer_profiles_user_id_fk",
+          "tableFrom": "volunteer_skills",
+          "tableTo": "volunteer_profiles",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "user_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "volunteer_skills_verified_by_users_id_fk": {
+          "name": "volunteer_skills_verified_by_users_id_fk",
+          "tableFrom": "volunteer_skills",
+          "tableTo": "users",
+          "columnsFrom": [
+            "verified_by"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "volunteer_skills_user_id_skill_pk": {
+          "name": "volunteer_skills_user_id_skill_pk",
+          "columns": [
+            "user_id",
+            "skill"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "volunteer_skills_verifier_matches_status": {
+          "name": "volunteer_skills_verifier_matches_status",
+          "value": "(\"volunteer_skills\".\"status\" = 'unverified') = (\"volunteer_skills\".\"verified_by\" is null) and (\"volunteer_skills\".\"verified_by\" is null) = (\"volunteer_skills\".\"verified_at\" is null)"
+        }
+      },
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {
+    "public.assignment_status": {
+      "name": "assignment_status",
+      "schema": "public",
+      "values": [
+        "offered",
+        "accepted",
+        "declined",
+        "withdrawn",
+        "deployed",
+        "completed"
+      ]
+    },
+    "public.audit_action": {
+      "name": "audit_action",
+      "schema": "public",
+      "values": [
+        "onsite_select",
+        "onsite_modify",
+        "onsite_reject",
+        "office_approve",
+        "office_send_back",
+        "severity_override",
+        "skill_verify",
+        "location_request",
+        "offer_accept",
+        "offer_decline",
+        "offer_withdraw",
+        "status_change",
+        "password_reset"
+      ]
+    },
+    "public.hazard_type": {
+      "name": "hazard_type",
+      "schema": "public",
+      "values": [
+        "flood",
+        "landslide"
+      ]
+    },
+    "public.request_status": {
+      "name": "request_status",
+      "schema": "public",
+      "values": [
+        "pending",
+        "in_progress",
+        "resolved",
+        "cancelled"
+      ]
+    },
+    "public.selection_status": {
+      "name": "selection_status",
+      "schema": "public",
+      "values": [
+        "awaiting_approval",
+        "approved",
+        "sent_back"
+      ]
+    },
+    "public.skill": {
+      "name": "skill",
+      "schema": "public",
+      "values": [
+        "first_aid",
+        "swimming",
+        "boat_handling",
+        "heavy_lifting",
+        "driving",
+        "local_language"
+      ]
+    },
+    "public.skill_status": {
+      "name": "skill_status",
+      "schema": "public",
+      "values": [
+        "unverified",
+        "verified",
+        "rejected"
+      ]
+    },
+    "public.team_force": {
+      "name": "team_force",
+      "schema": "public",
+      "values": [
+        "sdrf",
+        "ndrf"
+      ]
+    },
+    "public.team_status": {
+      "name": "team_status",
+      "schema": "public",
+      "values": [
+        "available",
+        "deployed",
+        "unavailable"
+      ]
+    },
+    "public.user_role": {
+      "name": "user_role",
+      "schema": "public",
+      "values": [
+        "volunteer",
+        "onsite_commander",
+        "office_commander",
+        "admin"
+      ]
+    }
+  },
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}
