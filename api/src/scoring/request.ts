@@ -26,7 +26,7 @@ export interface Scored {
 
 export type Band = 'Critical' | 'High' | 'Normal';
 
-const round2 = (n: number) => Math.round(n * 100) / 100;
+export const round2 = (n: number) => Math.round(n * 100) / 100;
 
 /**
  * PRD F5 points table. [Provisional] (D-047). A blank (null) count scores 0 because
