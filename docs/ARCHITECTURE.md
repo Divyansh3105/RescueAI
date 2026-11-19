@@ -292,12 +292,12 @@ The rules are defined in `AGENTS.md` → Security Requirements. This section cov
   - Server-side sessions stored in PostgreSQL, referenced by an httpOnly, Secure, SameSite cookie. Nothing token-like is stored in JavaScript.
   - Users log in with a phone number and password. Passwords are at least 8 characters, and a session lasts 12 hours (D-037).
   - Deactivating a commander deletes their sessions, so access is revoked immediately. (Built: a session of a deactivated user is already rejected on every request.)
-  - **Built 2026-10-26 (D-052):** cookie `sid` (HttpOnly, SameSite=Lax, Secure in production, 12 h, fixed from login). The cookie holds 32 random bytes; the `sessions` row stores only its SHA-256. Wrong phone, wrong password and a deactivated account return the same 401 `invalid_credentials`, and an unknown phone is still compared against a dummy hash so timing doesn't reveal which phones exist. Login has no rate limit yet (not decided).
+  - **Built 2026-10-26 (D-052):** cookie `sid` (HttpOnly, SameSite=Lax, Secure in production, 12 h, fixed from login). The cookie holds 32 random bytes; the `sessions` row stores only its SHA-256. Wrong phone, wrong password and a deactivated account return the same 401 `invalid_credentials`, and an unknown phone is still compared against a dummy hash so timing doesn't reveal which phones exist. Login is rate-limited (D-057): 10 attempts per phone and 100 per IP per 15 minutes.
 - **Passwords:** hashed with bcrypt (`bcryptjs`, cost 12).
 - **Authorization:** role-check middleware on every non-public route, plus ownership checks (for example, a volunteer can reach only their own offers).
 - **Personal data:** citizen phone numbers and volunteer coordinates are included only in commander responses. Volunteer and Admin responses, audit snapshots and CSV exports never contain them. A volunteer still receives their own location.
 - **Input:** zod validation on every route, and parameterized SQL only.
-- **Abuse:** the public submission endpoint is rate-limited to 30 requests per 10 minutes per IP (D-036). The limit is deliberately generous, because Indian mobile carriers put many users behind one shared IP and a strict limit would block real citizens during a disaster.
+- **Abuse:** the public submission endpoint is rate-limited to 30 requests per 10 minutes per IP (D-036). The limit is deliberately generous, because Indian mobile carriers put many users behind one shared IP and a strict limit would block real citizens during a disaster. Login (D-057) is limited mainly per account, for the same reason: 10 attempts per phone number per 15 minutes, plus a loose 100 per IP against one machine trying many accounts.
 - **Secrets:** supplied through environment variables and never committed.
 - **Audit integrity:** the database role cannot update or delete audit rows.
 

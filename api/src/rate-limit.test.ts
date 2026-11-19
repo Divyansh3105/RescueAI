@@ -23,6 +23,19 @@ describe('rateLimit', () => {
     expect(res.headers['retry-after']).toBe('1');
   });
 
+  it('counts per key, and lets an undefined key through uncounted', async () => {
+    const app = express();
+    app.use(rateLimit({ max: 1, windowMs: 1000, now: () => 0, key: (req) => req.get('x-user') }));
+    app.get('/', (_req, res) => {
+      res.json({ ok: true });
+    });
+    expect((await request(app).get('/').set('x-user', 'a')).status).toBe(200);
+    expect((await request(app).get('/').set('x-user', 'a')).status).toBe(429);
+    expect((await request(app).get('/').set('x-user', 'b')).status).toBe(200);
+    expect((await request(app).get('/')).status).toBe(200);
+    expect((await request(app).get('/')).status).toBe(200);
+  });
+
   it('starts a new window once the old one has passed', async () => {
     let t = 0;
     const app = appWith(() => t);
