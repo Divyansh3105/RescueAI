@@ -1354,3 +1354,28 @@ Option 2, in migration `0002_data_model.sql`:
 A superuser can still bypass the triggers with `session_replication_role`; no app code does, and the deployed Neon role is not a true superuser (whether Neon lets it change that setting has not been checked). The audit action list is an enum, so a new action type needs a migration.
 ### Consequences
 `ARCHITECTURE.md`, `TESTING.md`, `AGENTS.md`, `PLAN.md` and `MEMORY.md` updated. Refines D-038 (test isolation) without superseding the rest of it.
+
+## D-057 Login is rate-limited per phone and per IP
+
+### Date
+2026-11-19
+### Status
+Accepted.
+### Context
+D-052 left `POST /api/auth/login` without a rate limit ("nothing decided a number"). Commander accounts can read citizens' phone numbers (AC14), so unlimited password guessing against a commander's phone is the most direct attack on that data. bcrypt cost 12 slows each guess but does not cap them. D-036 already established that Indian carriers put many users behind one IP, which rules out a strict per-IP limit: volunteers log in from phones too.
+### Options Considered
+1. Per IP only, strict (for example 10 per 15 minutes).
+2. Per account (normalized phone) as the main limit, plus a loose per-IP limit.
+3. Lockout or growing delays after failures, stored in the database.
+### Decision
+Option 2, reusing `api/src/rate-limit.ts` with a new optional `key`:
+- **10 attempts per phone number per 15 minutes.** The key is the normalized 10-digit phone, so "+91 90000 00001" and "9000000001" share one counter. Every attempt counts, successful ones included. A phone that doesn't parse isn't counted per account; validation rejects it with 400.
+- **100 attempts per IP per 15 minutes**, checked first, against one machine trying many accounts.
+- A blocked attempt gets the D-035 `429 rate_limited` with `Retry-After`, the same as the public form.
+- `truncateAll()` resets every limiter's counts, so tests stay independent.
+### Reasoning
+Option 1 would lock out a whole carrier's worth of volunteers during a disaster. Option 3 needs a table and a reset path for a prototype on one instance. Option 2 caps guessing on any one account at 40 an hour with no new dependency or table.
+### Trade-offs
+Anyone who knows an account's phone number can keep that account from logging in for up to 15 minutes at a time by sending 10 bad attempts. Sessions already signed in are not affected (they last 12 hours). Counts are in memory, so they reset on a restart and are per instance (the existing `ponytail:` note in `rate-limit.ts`).
+### Consequences
+`ARCHITECTURE.md`, `AGENTS.md`, `TESTING.md` and `MEMORY.md` updated. Supersedes the "Login has no rate limit yet" trade-off noted in D-052.

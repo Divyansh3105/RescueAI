@@ -92,7 +92,7 @@ api/                   Express API (strict TypeScript)
   src/routes/          HTTP handlers: auth.ts (login, logout, me), requests.ts (public POST /api/requests, commander GET /api/queue), admin.ts (Admin-only /api/admin/commanders), http.ts (validation error helper)
   src/services/        business rules; requests.ts (create a request, build the queue), settings.ts (the settings row: weights, Freshness window), admin.ts (commander accounts, temporary passwords)
   src/scoring/         pure ranking functions; request.ts (F5 severity, F6 P(r), band, sort), responder.ts (F7 volunteer and team shortlists, F8 contributions and reason)
-  src/rate-limit.ts    in-memory per-IP limiter used by the public request route (D-036, D-055)
+  src/rate-limit.ts    in-memory fixed-window limiter (per IP, or per a chosen key): the public request route (D-036, D-055) and login, per phone and per IP (D-057). truncateAll() resets its counts in tests
   src/db/              Drizzle client, schema (every MVP table; D-056), migrate.ts, seed.ts
   src/test/            integration-test global setup (migrate) and truncateAll()
   drizzle/             generated migrations, applied at API start-up (D-053)
